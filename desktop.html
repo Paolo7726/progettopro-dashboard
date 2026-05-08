@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Progetto Pro — Match Scanner</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:       #0a0d12;
+  --surface:  #111520;
+  --card:     #161c2a;
+  --border:   #1f2a40;
+  --accent:   #00d4aa;
+  --accent2:  #f7b731;
+  --accent3:  #e74c5e;
+  --text:     #e8edf5;
+  --muted:    #5a6580;
+  --green:    #00d4aa;
+  --yellow:   #f7b731;
+  --red:      #e74c5e;
+  --blue:     #4a9eff;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+}
+.logo span { color: var(--text); }
+.header-stats {
+  display: flex;
+  gap: 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+.header-stats b { color: var(--accent); }
+.refresh-btn {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.refresh-btn:hover { opacity: 0.85; }
+
+/* ── Filtri ── */
+.filters {
+  display: flex;
+  gap: 10px;
+  padding: 16px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filter-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'DM Mono', monospace;
+  margin-right: 4px;
+}
+.chip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Syne', sans-serif;
+}
+.chip:hover, .chip.active {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+.chip.value-filter.active { background: var(--yellow); border-color: var(--yellow); }
+.divider { width: 1px; height: 24px; background: var(--border); margin: 0 6px; }
+
+/* ── Layout principale ── */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 0;
+  height: calc(100vh - 120px);
+}
+.match-list { overflow-y: auto; padding: 20px 28px; }
+.preview-panel {
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  overflow-y: auto;
+  position: sticky;
+  top: 120px;
+  height: calc(100vh - 120px);
+}
+
+/* ── Match card ── */
+.day-header {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 16px 0 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.match-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+.match-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: transparent;
+  transition: background 0.18s;
+}
+.match-card:hover { border-color: var(--accent); }
+.match-card:hover::before { background: var(--accent); }
+.match-card.selected { border-color: var(--accent); background: #0d1824; }
+.match-card.selected::before { background: var(--accent); }
+.match-card.has-value::before { background: var(--yellow) !important; }
+.match-card.has-value { border-color: #2a2510; }
+
+.match-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.match-teams {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.match-teams .vs {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 400;
+  margin: 0 6px;
+  font-family: 'DM Mono', monospace;
+}
+.match-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 6px;
+  align-items: center;
+}
+.league-badge {
+  background: var(--border);
+  color: var(--text);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'Syne', sans-serif;
+}
+
+/* ── Quote row ── */
+.odds-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin-top: 10px;
+}
+.odd-box {
+  text-align: center;
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 6px 4px;
+  border: 1px solid var(--border);
+  transition: all 0.15s;
+}
+.odd-box.bet {
+  background: rgba(0,212,170,0.12);
+  border-color: var(--accent);
+}
+.odd-label {
+  font-size: 10px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  display: block;
+  margin-bottom: 2px;
+}
+.odd-value {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text);
+}
+.odd-box.bet .odd-value { color: var(--accent); }
+.value-badge {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(247,183,49,0.15);
+  color: var(--yellow);
+  font-family: 'DM Mono', monospace;
+  font-weight: 500;
+  display: block;
+  margin-top: 2px;
+}
+.value-badge.positive { background: rgba(0,212,170,0.15); color: var(--accent); }
+
+/* ── Preview Panel ── */
+.preview-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--muted);
+  gap: 12px;
+  text-align: center;
+  padding: 40px;
+}
+.preview-placeholder .icon { font-size: 48px; opacity: 0.3; }
+.preview-placeholder p { font-size: 14px; line-height: 1.6; }
+
+.preview-content { padding: 24px 20px; }
+.preview-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+.preview-sub {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 20px;
+}
+
+/* ── Prob bars ── */
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  margin: 20px 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.prob-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.prob-label {
+  font-size: 12px;
+  color: var(--muted);
+  width: 90px;
+  flex-shrink: 0;
+}
+.prob-bar-wrap {
+  flex: 1;
+  background: var(--border);
+  border-radius: 4px;
+  height: 7px;
+  overflow: hidden;
+}
+.prob-bar {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+.prob-bar.amber { background: var(--yellow); }
+.prob-bar.red   { background: var(--red); }
+.prob-bar.blue  { background: var(--blue); }
+.prob-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  width: 44px;
+  text-align: right;
+  color: var(--text);
+}
+.fair-odds {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  width: 52px;
+  text-align: right;
+}
+.value-chip {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-family: 'DM Mono', monospace;
+  font-weight: 500;
+  min-width: 48px;
+  text-align: center;
+}
+.value-chip.pos { background: rgba(0,212,170,0.15); color: var(--accent); }
+.value-chip.neg { background: rgba(231,76,94,0.12); color: var(--red); }
+.value-chip.none { opacity: 0; }
+
+/* ── Lambda box ── */
+.lambda-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 0;
+}
+.lambda-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+.lambda-team {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lambda-value {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 28px;
+  color: var(--accent);
+}
+.lambda-label {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ── Over/Under ── */
+.ou-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin: 4px 0;
+}
+.ou-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  text-align: center;
+}
+.ou-label { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
+.ou-pct { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+.ou-fair { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+/* ── Decision badge ── */
+.decision-row {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+.decision-badge {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+}
+.decision-badge.bet   { background: rgba(0,212,170,0.15); border: 1px solid var(--accent); color: var(--accent); }
+.decision-badge.watch { background: rgba(247,183,49,0.12); border: 1px solid var(--yellow); color: var(--yellow); }
+.decision-badge.skip  { background: rgba(90,101,128,0.12); border: 1px solid var(--border); color: var(--muted); }
+.decision-badge .sub  { font-size: 10px; font-weight: 400; display: block; margin-top: 2px; font-family: 'DM Mono', monospace; }
+
+/* ── Confidence bar ── */
+.conf-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+}
+.conf-bar-wrap { flex: 1; background: var(--border); border-radius: 4px; height: 8px; overflow: hidden; }
+.conf-bar { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--blue)); }
+.conf-label { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
+.conf-value { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--text); }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── Animazioni ── */
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.match-card { animation: fadeIn 0.25s ease both; }
+.preview-content { animation: fadeIn 0.3s ease both; }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .main { grid-template-columns: 1fr; height: auto; }
+  .preview-panel { position: fixed; bottom: 0; left: 0; right: 0; height: 60vh; z-index: 200;
+    border-left: none; border-top: 1px solid var(--border); transform: translateY(100%); transition: transform 0.3s; }
+  .preview-panel.open { transform: translateY(0); }
+  .match-list { padding-bottom: 80px; }
+  .header-stats { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">Progetto<span>Pro</span> <span style="color:var(--muted);font-size:11px;font-weight:400;font-family:'DM Mono',monospace;">Ver28</span></div>
+  <div class="header-stats">
+    <span>Palinsesto: <b id="total-matches">0</b> partite</span>
+    <span>BET: <b id="total-bets" style="color:var(--accent)">0</b></span>
+    <span>WATCH: <b id="total-watch" style="color:var(--yellow)">0</b></span>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span id="status-bar" style="font-family:'DM Mono',monospace;font-size:11px;display:none;"></span>
+    <button class="refresh-btn" onclick="loadData()">⟳ Aggiorna</button>
+  </div>
+</div>
+
+<!-- Filtri -->
+<div class="filters">
+  <span class="filter-label">Campionato:</span>
+  <button class="chip active" onclick="filterLeague('')">Tutti</button>
+  <button class="chip" onclick="filterLeague('Serie A')">Serie A</button>
+  <button class="chip" onclick="filterLeague('Serie B')">Serie B</button>
+  <button class="chip" onclick="filterLeague('Serie C')">Serie C</button>
+  <button class="chip" onclick="filterLeague('Premier League')">Premier</button>
+  <button class="chip" onclick="filterLeague('La Liga')">La Liga</button>
+  <button class="chip" onclick="filterLeague('La Liga 2')">Liga 2</button>
+  <button class="chip" onclick="filterLeague('Bundesliga')">Bundesliga</button>
+  <button class="chip" onclick="filterLeague('Ligue 1')">Ligue 1</button>
+  <button class="chip" onclick="filterLeague('Jupiler Pro')">Belgio</button>
+  <button class="chip" onclick="filterLeague('Super Lig')">Turchia</button>
+  <button class="chip" onclick="filterLeague('Primeira Liga')">Portogallo</button>
+  <div class="divider"></div>
+  <button class="chip value-filter" onclick="filterValue()">Solo VALUE+</button>
+  <button class="chip value-filter" onclick="filterBet()">Solo BET</button>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="match-list" id="match-list">
+    <!-- Cards iniettate da JS -->
+  </div>
+  <div class="preview-panel" id="preview-panel">
+    <div class="preview-placeholder" id="preview-placeholder">
+      <div class="icon">⚽</div>
+      <p>Seleziona una partita<br>per vedere l'analisi completa</p>
+    </div>
+    <div class="preview-content" id="preview-content" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+// DATI LIVE — aggiornati da engine.py
+var LIVE_DATA = [{"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Standard Liegi", "Away": "Oud-Heverlee Leuven", "Campionato": "Jupiler Pro", "Match_ID": "20260508_STANDARD_LIE_OUD_HEVERLEE", "Odd1": 2.0, "OddX": 3.4, "Odd2": 3.65, "Odd_OV25": 1.7, "Odd_UN25": 2.05, "Odd_GG": 1.6, "Odd_NG": 2.2, "Campionato_AS": "Jupiler Pro", "lam_h": 2.1205638656802264, "lam_a": 0.951566753570574, "Prob1": 0.6419789788, "ProbX": 0.198969673, "Prob2": 0.1590513482, "Fair1": 1.5576834024522423, "FairX": 5.025891558860832, "Fair2": 6.287277733367871, "Value1": 0.2839579576, "ValueX": -0.3235031118, "Value2": -0.41946257907000006, "Value_Max": 0.2839579576, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "2", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.5927744440995194, "Prob_GG": 0.5402228184709029, "Value_OV25": 0.007716554969182887, "Value_GG": -0.13564349044655521, "Segnale": "BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Lens", "Away": "Nantes", "Campionato": "Ligue 1", "Match_ID": "20260508_LENS_NANTES", "Odd1": 1.47, "OddX": 4.85, "Odd2": 6.0, "Odd_OV25": 1.42, "Odd_UN25": 2.65, "Odd_GG": 1.6, "Odd_NG": 2.2, "Campionato_AS": "Ligue 1", "lam_h": 1.052000474052202, "lam_a": 1.3556498192972457, "Prob1": 0.2906850009, "ProbX": 0.272132141, "Prob2": 0.4371828581, "Fair1": 3.4401499798884188, "FairX": 3.674685380144053, "Fair2": 2.2873723922891385, "Value1": -0.572693048677, "ValueX": 0.31984088385, "Value2": 1.6230971486000003, "Value_Max": 1.6230971486000003, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "6", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.43228874745329104, "Prob_GG": 0.4830084450658035, "Value_OV25": -0.3861499786163267, "Value_GG": -0.22718648789471452, "Segnale": "BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Borussia Dortmund", "Away": "Eintracht Francoforte", "Campionato": "Bundesliga", "Match_ID": "20260508_BORUSSIA_DOR_EINTRACHT_FR", "Odd1": 1.65, "OddX": 4.4, "Odd2": 4.6, "Odd_OV25": 1.35, "Odd_UN25": 2.95, "Odd_GG": 1.42, "Odd_NG": 2.65, "Campionato_AS": "Bundesliga", "lam_h": 2.807143555407273, "lam_a": 1.6325405345235235, "Prob1": 0.6220359758, "ProbX": 0.1703279811, "Prob2": 0.2076360431, "Fair1": 1.6076240585826258, "FairX": 5.871025967324168, "Fair2": 4.816119518894839, "Value1": 0.026359360069999838, "ValueX": -0.25055688316, "Value2": -0.04487420174000012, "Value_Max": 0.026359360069999838, "Confidence": 0.6615269048603661, "Decision": "WATCH", "Mercato": "OV2.5", "TipoScommessa": "1", "OddsBet": "1.65", "Kelly": 0.040552861646153945, "RiskFlag": "OK", "Prob_OV25": 0.8195231535334688, "Prob_GG": 0.7559900150580334, "Value_OV25": 0.10635625727018305, "Value_GG": 0.07350582138240735, "Segnale": "NO BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Hull City", "Away": "Millwall", "Campionato": "Championship", "Match_ID": "20260508_HULL_CITY_MILLWALL", "Odd1": 3.0, "OddX": 3.2, "Odd2": 2.4, "Odd_OV25": 2.05, "Odd_UN25": 1.7, "Odd_GG": 1.8, "Odd_NG": 1.9, "Campionato_AS": "Championship", "lam_h": 1.2375273129420301, "lam_a": 1.1686815828841604, "Prob1": 0.3786790479, "ProbX": 0.2759950603, "Prob2": 0.3453258918, "Fair1": 2.6407587257483436, "FairX": 3.623253252840917, "Fair2": 2.8958152972183244, "Value1": 0.13603714370000008, "ValueX": -0.11681580704000005, "Value2": -0.17121785968000003, "Value_Max": 0.13603714370000008, "Confidence": 0.6235459065600002, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "3", "Kelly": 0.06801857185000004, "RiskFlag": "OK", "Prob_OV25": 0.43191259465554066, "Prob_GG": 0.4892793757924853, "Value_OV25": -0.11457918095614161, "Value_GG": -0.11929712357352651, "Segnale": "BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Avellino", "Away": "Modena", "Campionato": "Serie C", "Match_ID": "20260508_AVELLINO_MODENA", "Odd1": 1.6, "OddX": 3.75, "Odd2": 5.85, "Odd_OV25": 1.9, "Odd_UN25": 1.8, "Odd_GG": 1.85, "Odd_NG": 1.85, "Campionato_AS": "Serie C", "lam_h": 0.04423044245793235, "lam_a": 0.055474889116167436, "Prob1": 0.0409815616, "ProbX": 0.9073262818, "Prob2": 0.0516921566, "Fair1": 24.40121754657587, "FairX": 1.1021393516962268, "Fair2": 19.34529463992222, "Value1": -0.93442950144, "ValueX": 2.40247355675, "Value2": -0.6976008838900001, "Value_Max": 2.40247355675, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "X", "TipoScommessa": "X", "OddsBet": "3.75", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.00015332366398124186, "Prob_GG": 0.0023348451161262704, "Value_OV25": -0.9997086850384357, "Value_GG": -0.9956805365351664, "Segnale": "BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Catanzaro", "Away": "Bari", "Campionato": "Serie B", "Match_ID": "20260508_CATANZARO_BARI", "Odd1": 2.75, "OddX": 3.1, "Odd2": 2.65, "Odd_OV25": 1.6, "Odd_UN25": 2.2, "Odd_GG": 1.47, "Odd_NG": 2.5, "Campionato_AS": "Serie B", "lam_h": 1.3970897191772227, "lam_a": 2.103451680661015, "Prob1": 0.2527908229, "ProbX": 0.2097218989, "Prob2": 0.5374872782, "Fair1": 3.9558398067147555, "FairX": 4.768219271545037, "Fair2": 1.8605091516750247, "Value1": -0.304825237025, "ValueX": -0.34986211340999995, "Value2": 0.42434128722999986, "Value_Max": 0.42434128722999986, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "2.65", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.6792529262789876, "Prob_GG": 0.660830886904513, "Value_OV25": 0.08680468204638037, "Value_GG": -0.028578596250365962, "Segnale": "BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Cesena", "Away": "Padova", "Campionato": "Serie B", "Match_ID": "20260508_CESENA_PADOVA", "Odd1": 1.5, "OddX": 4.55, "Odd2": 5.5, "Odd_OV25": 1.55, "Odd_UN25": 2.3, "Odd_GG": 1.63, "Odd_NG": 2.15, "Campionato_AS": "Serie B", "lam_h": 1.0726976129807304, "lam_a": 0.6940161425248287, "Prob1": 0.4415634097, "ProbX": 0.3238501799, "Prob2": 0.2345864104, "Fair1": 2.2646804015744966, "FairX": 3.087847597641554, "Fair2": 4.262821526169701, "Value1": -0.33765488545, "ValueX": 0.4735183185449998, "Value2": 0.29022525720000014, "Value_Max": 0.4735183185449998, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "4.55", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.2604828692579444, "Prob_GG": 0.3292434975666958, "Value_OV25": -0.5962515526501861, "Value_GG": -0.46333309896628583, "Segnale": "NO BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Virtus Entella", "Away": "Carrarese", "Campionato": "Serie B", "Match_ID": "20260508_VIRTUS_ENTEL_CARRARESE", "Odd1": 1.68, "OddX": 4.05, "Odd2": 4.5, "Odd_OV25": 1.6, "Odd_UN25": 2.2, "Odd_GG": 1.6, "Odd_NG": 2.2, "Campionato_AS": "Serie B", "lam_h": 0.9572794717801596, "lam_a": 1.2974320617177546, "Prob1": 0.2748731724, "ProbX": 0.2816889833, "Prob2": 0.4434378443, "Fair1": 3.638041469339116, "FairX": 3.5500145880216967, "Fair2": 2.255107480911051, "Value1": -0.5382130703680001, "ValueX": 0.14084038236499974, "Value2": 0.9954702993500002, "Value_Max": 0.9954702993500002, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "4.5", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.39191740064505187, "Prob_GG": 0.4477352882872073, "Value_OV25": -0.37293215896791687, "Value_GG": -0.2836235387404683, "Segnale": "BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Frosinone", "Away": "Mantova", "Campionato": "Serie B", "Match_ID": "20260508_FROSINONE_MANTOVA", "Odd1": 1.62, "OddX": 4.05, "Odd2": 5.0, "Odd_OV25": 1.5, "Odd_UN25": 2.4, "Odd_GG": 1.53, "Odd_NG": 2.35, "Campionato_AS": "Serie B", "lam_h": 1.4174894757597098, "lam_a": 1.2783720596363641, "Prob1": 0.4032123742, "ProbX": 0.2576829635, "Prob2": 0.3391046623, "Fair1": 2.4800826164724388, "FairX": 3.88073773453013, "Fair2": 2.9489420558757087, "Value1": -0.34679595379600003, "ValueX": 0.043616002174999835, "Value2": 0.6955233115000001, "Value_Max": 0.6955233115000001, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "5", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.5053611904375477, "Prob_GG": 0.5466723112949634, "Value_OV25": -0.24195821434367848, "Value_GG": -0.16359136371870597, "Segnale": "NO BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Venezia", "Away": "Palermo", "Campionato": "Serie A", "Match_ID": "20260508_VENEZIA_PALERMO", "Odd1": 1.63, "OddX": 4.0, "Odd2": 5.0, "Odd_OV25": 1.6, "Odd_UN25": 2.2, "Odd_GG": 1.6, "Odd_NG": 2.2, "Campionato_AS": "Serie A", "lam_h": 2.08561613641418, "lam_a": 1.4032321966314525, "Prob1": 0.5324136515, "ProbX": 0.2109363484, "Prob2": 0.2566500001, "Fair1": 1.8782388415147542, "FairX": 4.740766622657625, "Fair2": 3.8963569047744566, "Value1": -0.13216574805500014, "ValueX": -0.1562546064000001, "Value2": 0.28325000050000004, "Value_Max": 0.28325000050000004, "Confidence": 0.76916000104, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "5", "Kelly": 0.07081250012500001, "RiskFlag": "OK", "Prob_OV25": 0.6770852705404041, "Prob_GG": 0.6605042648504098, "Value_OV25": 0.08333643286464665, "Value_GG": 0.0568068237606556, "Segnale": "NO BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Reggiana", "Away": "Sampdoria", "Campionato": "Serie B", "Match_ID": "20260508_REGGIANA_SAMPDORIA", "Odd1": 3.55, "OddX": 3.25, "Odd2": 2.1, "Odd_OV25": 2.0, "Odd_UN25": 1.72, "Odd_GG": 1.75, "Odd_NG": 1.95, "Campionato_AS": "Serie B", "lam_h": 0.8164794402309963, "lam_a": 0.8114430597758164, "Prob1": 0.3266246366, "ProbX": 0.3496141365, "Prob2": 0.3237612269, "Fair1": 3.061618408242264, "FairX": 2.860296239766037, "Fair2": 3.0886959799817837, "Value1": 0.15951745993, "ValueX": 0.13624594362499987, "Value2": -0.32010142351000004, "Value_Max": 0.15951745993, "Confidence": 0.9211213445421229, "Stake": 0.25, "Decision": "BET", "Mercato": "NG", "TipoScommessa": "1", "OddsBet": "3.55", "Kelly": 0.06255586663921568, "RiskFlag": "OK", "Prob_OV25": 0.22388196788199666, "Prob_GG": 0.310135515409712, "Value_OV25": -0.5522360642360067, "Value_GG": -0.457262848033004, "Segnale": "NO BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Pescara", "Away": "Spezia", "Campionato": "Serie B", "Match_ID": "20260508_PESCARA_SPEZIA", "Odd1": 2.15, "OddX": 3.55, "Odd2": 3.15, "Odd_OV25": 1.53, "Odd_UN25": 2.35, "Odd_GG": 1.45, "Odd_NG": 2.55, "Campionato_AS": "Serie B", "lam_h": 1.2351168530123429, "lam_a": 1.21342098490755, "Prob1": 0.3685409888, "ProbX": 0.273352167, "Prob2": 0.3581068442, "Fair1": 2.713402390480589, "FairX": 3.6582845161787216, "Fair2": 2.7924626859170205, "Value1": -0.2076368740800001, "ValueX": -0.029599807150000212, "Value2": 0.1280365592299999, "Value_Max": 0.1280365592299999, "Confidence": 0.8615198377720009, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "2", "OddsBet": "3.15", "Kelly": 0.05955188801395345, "RiskFlag": "OK", "Prob_OV25": 0.4429197659378722, "Prob_GG": 0.4984401805919485, "Value_OV25": -0.3223327581150556, "Value_GG": -0.27726173814167476, "Segnale": "BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Monza", "Away": "Empoli", "Campionato": "Serie A", "Match_ID": "20260508_MONZA_EMPOLI", "Odd1": 1.7, "OddX": 4.0, "Odd2": 4.5, "Odd_OV25": 1.68, "Odd_UN25": 2.05, "Odd_GG": 1.68, "Odd_NG": 2.05, "Campionato_AS": "Serie A", "lam_h": 1.1272468161644116, "lam_a": 1.3141845881556042, "Prob1": 0.3188816802, "ProbX": 0.2723571356, "Prob2": 0.4087611843, "Fair1": 3.1359593921256566, "FairX": 3.671649717555628, "Fair2": 2.4464162410931736, "Value1": -0.45790114366, "ValueX": 0.08942854240000009, "Value2": 0.83942532935, "Value_Max": 0.83942532935, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "4.5", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.44107759313778816, "Prob_GG": 0.49441899684639273, "Value_OV25": -0.25898964352851594, "Value_GG": -0.16937608529806025, "Segnale": "BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Sudtirol", "Away": "Juve Stabia", "Campionato": "Serie B", "Match_ID": "20260508_SUDTIROL_JUVE_STABIA", "Odd1": 1.55, "OddX": 4.05, "Odd2": 5.85, "Odd_OV25": 1.68, "Odd_UN25": 2.05, "Odd_GG": 1.72, "Odd_NG": 2.0, "Campionato_AS": "Serie B", "lam_h": 0.8905222225405625, "lam_a": 0.597326973698405, "Prob1": 0.4043468475, "ProbX": 0.3629523047, "Prob2": 0.2327008478, "Fair1": 2.4731242649295044, "FairX": 2.7551829456670758, "Fair2": 4.297362942396637, "Value1": -0.373262386375, "ValueX": 0.469956834035, "Value2": 0.36129995962999994, "Value_Max": 0.469956834035, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "4.05", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.1881092926607124, "Prob_GG": 0.2651359680735221, "Value_OV25": -0.6839763883300032, "Value_GG": -0.5439661349135421, "Segnale": "BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Torino", "Away": "Sassuolo", "Campionato": "Serie A", "Match_ID": "20260508_TORINO_SASSUOLO", "Odd1": 2.6, "OddX": 3.15, "Odd2": 2.85, "Odd_OV25": 1.83, "Odd_UN25": 1.9, "Odd_GG": 1.63, "Odd_NG": 2.2, "Campionato_AS": "Serie A", "lam_h": 0.8996248137533849, "lam_a": 1.9032133957104564, "Prob1": 0.1724304248, "ProbX": 0.2183263244, "Prob2": 0.6092432508, "Fair1": 5.799440563693374, "FairX": 4.580299708467038, "Fair2": 1.6413805137552129, "Value1": -0.55168089552, "ValueX": -0.31227207814, "Value2": 0.7363432647800001, "Value_Max": 0.7363432647800001, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "2.85", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.5312226015045585, "Prob_GG": 0.5048267204670571, "Value_OV25": -0.027862639246657994, "Value_GG": -0.177132445638697, "Segnale": "BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Cadice", "Away": "Deportivo La Coruña", "Campionato": "La Liga", "Match_ID": "20260508_CADICE_DEPORTIVO_LA", "Odd1": 3.75, "OddX": 3.4, "Odd2": 1.9, "Odd_OV25": 1.85, "Odd_UN25": 1.85, "Odd_GG": 1.73, "Odd_NG": 1.95, "Campionato_AS": "La Liga", "lam_h": 0.8162495287090918, "lam_a": 1.748347500843399, "Prob1": 0.1719416734, "ProbX": 0.2327436239, "Prob2": 0.5953147027, "Fair1": 5.8159257161213604, "FairX": 4.296573127303618, "Fair2": 1.6797838109231702, "Value1": -0.35521872475000005, "ValueX": -0.20867167874000003, "Value2": 0.1310979351299999, "Value_Max": 0.1310979351299999, "Confidence": 0.7003217513399997, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "1.9", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.47264684752892694, "Prob_GG": 0.4608022594804068, "Value_OV25": -0.1256033320714851, "Value_GG": -0.2028120910988962, "Segnale": "BET"}, {"Date": "VENERDÌ 08 MAGGIO 2026", "Home": "Levante", "Away": "Osasuna", "Campionato": "La Liga", "Match_ID": "20260508_LEVANTE_OSASUNA", "Odd1": 2.55, "OddX": 3.15, "Odd2": 2.9, "Odd_OV25": 1.9, "Odd_UN25": 1.8, "Odd_GG": 1.68, "Odd_NG": 2.05, "Campionato_AS": "La Liga", "lam_h": 1.4485612897214168, "lam_a": 1.3769847075354558, "Prob1": 0.3905106568, "ProbX": 0.2513045722, "Prob2": 0.358184771, "Fair1": 2.5607495790112327, "FairX": 3.9792352015153662, "Fair2": 2.7918551567900134, "Value1": -0.004197825160000002, "ValueX": -0.20839059757, "Value2": 0.03873583589999985, "Value_Max": 0.03873583589999985, "Confidence": 0.42074558019999975, "Decision": "WATCH", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "2.9", "Kelly": 0.020387282052631617, "RiskFlag": "OK", "Prob_OV25": 0.5366135183714562, "Prob_GG": 0.5720299928423288, "Value_OV25": 0.019565684905766823, "Value_GG": -0.0389896120248876, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Raal La Louviere", "Away": "Cercle Brugge", "Campionato": "Jupiler Pro", "Match_ID": "20260509_RAAL_LA_LOUV_CERCLE_BRUGG", "Odd1": 3.1, "OddX": 3.5, "Odd2": 2.15, "Odd_OV25": 1.68, "Odd_UN25": 2.05, "Odd_GG": 1.6, "Odd_NG": 2.2, "Campionato_AS": "Jupiler Pro", "lam_h": 0.7243763773976766, "lam_a": 0.6223095130136175, "Prob1": 0.3354911772, "ProbX": 0.39124522, "Prob2": 0.2732636029, "Fair1": 2.9807043164174156, "FairX": 2.555941769716701, "Fair2": 3.6594701577068314, "Value1": 0.04002264931999999, "ValueX": 0.36935827, "Value2": -0.41248325376499995, "Value_Max": 0.36935827, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "3.5", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.1537704248250784, "Prob_GG": 0.23877065614281856, "Value_OV25": -0.7416656862938682, "Value_GG": -0.6179669501714902, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Zulte Waregem", "Away": "FCV Dender EH", "Campionato": "Jupiler Pro", "Match_ID": "20260509_ZULTE_WAREGE_FCV_DENDER_E", "Odd1": 1.53, "OddX": 4.15, "Odd2": 5.5, "Odd_OV25": 1.63, "Odd_UN25": 2.15, "Odd_GG": 1.73, "Odd_NG": 2.0, "Campionato_AS": "Jupiler Pro", "lam_h": 2.377021988917633, "lam_a": 2.0819449243842243, "Prob1": 0.4572065577, "ProbX": 0.1934995672, "Prob2": 0.3492938751, "Fair1": 2.1871952253496736, "FairX": 5.167970215491004, "Fair2": 2.86291879499378, "Value1": -0.30047396671900006, "ValueX": -0.19697679611999996, "Value2": 0.92111631305, "Value_Max": 0.92111631305, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "5.5", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.8217537079915896, "Prob_GG": 0.7940602409070028, "Value_OV25": 0.33945854402629094, "Value_GG": 0.3737242167691148, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Beerschot Wilrijk", "Away": "Lommel", "Campionato": "Jupiler Pro", "Match_ID": "20260509_BEERSCHOT_WI_LOMMEL", "Odd1": 1.95, "OddX": 3.65, "Odd2": 3.45, "Odd_OV25": 1.65, "Odd_UN25": 2.15, "Odd_GG": 1.58, "Odd_NG": 2.25, "Campionato_AS": "Jupiler Pro", "Value_Max": 0.0, "Confidence": 0.1, "Decision": "—", "Mercato": "NG", "TipoScommessa": "2", "OddsBet": "3.45", "RiskFlag": "RISK", "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Club Bruges", "Away": "St. Truidense VV", "Campionato": "Jupiler Pro", "Match_ID": "20260509_CLUB_BRUGES_ST__TRUIDENS", "Odd1": 1.5, "OddX": 4.65, "Odd2": 5.5, "Odd_OV25": 1.45, "Odd_UN25": 2.6, "Odd_GG": 1.57, "Odd_NG": 2.25, "Campionato_AS": "Jupiler Pro", "lam_h": 2.17502668318467, "lam_a": 0.6247047387940468, "Prob1": 0.7312091023, "ProbX": 0.176170519, "Prob2": 0.0926203787, "Fair1": 1.3675978551887893, "FairX": 5.676318635355782, "Fair2": 10.796760000723253, "Value1": 0.09681365344999993, "ValueX": -0.1808070866499999, "Value2": -0.49058791715000005, "Value_Max": 0.09681365344999993, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "NG", "TipoScommessa": "1", "OddsBet": "1.5", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.5304822916715483, "Prob_GG": 0.41180178099308884, "Value_OV25": -0.23080067707625496, "Value_GG": -0.3534712038408505, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Lipsia", "Away": "St. Pauli", "Campionato": "Bundesliga", "Match_ID": "20260509_LIPSIA_ST__PAULI", "Odd1": 1.3, "OddX": 5.5, "Odd2": 9.0, "Odd_OV25": 1.42, "Odd_UN25": 2.65, "Odd_GG": 1.72, "Odd_NG": 2.0, "Campionato_AS": "Bundesliga", "lam_h": 1.1446939039818143, "lam_a": 0.6154782000670599, "Prob1": 0.4856625458, "ProbX": 0.3162982944, "Prob2": 0.1980391598, "Fair1": 2.0590428655616537, "FairX": 3.16157253360137, "Fair2": 5.049506375455749, "Value1": -0.36863869045999986, "ValueX": 0.7396406192, "Value2": 0.7823524382000002, "Value_Max": 0.7823524382000002, "Confidence": 1.0, "Decision": "WATCH", "Mercato": "UN2.5", "TipoScommessa": "2", "OddsBet": "9", "Kelly": 0.097794054775, "RiskFlag": "RISK", "Prob_OV25": 0.2587389506730482, "Prob_GG": 0.3133114943765111, "Value_OV25": -0.6325906900442716, "Value_GG": -0.46110422967240094, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Augsburg", "Away": "Borussia Mönchengladbach", "Campionato": "Bundesliga", "Match_ID": "20260509_AUGSBURG_BORUSSIA_M_N", "Odd1": 2.05, "OddX": 3.65, "Odd2": 3.3, "Odd_OV25": 1.57, "Odd_UN25": 2.25, "Odd_GG": 1.47, "Odd_NG": 2.5, "Campionato_AS": "Bundesliga", "lam_h": 1.6883094958812799, "lam_a": 1.9682994939224425, "Prob1": 0.336120647, "ProbX": 0.215490938, "Prob2": 0.448388415, "Fair1": 2.975122203665162, "FairX": 4.640566370359388, "Fair2": 2.2302092706833205, "Value1": -0.31095267365, "ValueX": -0.21345807630000002, "Value2": 0.47968176949999974, "Value_Max": 0.47968176949999974, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "3.3", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.7071503726987396, "Prob_GG": 0.7012939960418537, "Value_OV25": 0.11022608513702115, "Value_GG": 0.030902174181524966, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Hoffenheim", "Away": "Werder Brema", "Campionato": "Bundesliga", "Match_ID": "20260509_HOFFENHEIM_WERDER_BREMA", "Odd1": 1.45, "OddX": 5.25, "Odd2": 5.5, "Odd_OV25": 1.33, "Odd_UN25": 3.05, "Odd_GG": 1.47, "Odd_NG": 2.5, "Campionato_AS": "Bundesliga", "lam_h": 2.0194821877687494, "lam_a": 1.024009120850776, "Prob1": 0.6041091827, "ProbX": 0.2105657178, "Prob2": 0.1853250994, "Fair1": 1.6553299116073839, "FairX": 4.749111158492677, "Fair2": 5.395923181682103, "Value1": -0.12404168508499991, "ValueX": 0.10547001844999992, "Value2": 0.01928804670000006, "Value_Max": 0.10547001844999992, "Confidence": 0.7066810177044793, "Decision": "WATCH", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "5.25", "Kelly": 0.024816474929411747, "RiskFlag": "RISK", "Prob_OV25": 0.5864828310517247, "Prob_GG": 0.5557918352974522, "Value_OV25": -0.21997783470120602, "Value_GG": -0.18298600211274518, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Stoccarda", "Away": "Bayer Leverkusen", "Campionato": "Bundesliga", "Match_ID": "20260509_STOCCARDA_BAYER_LEVERK", "Odd1": 2.15, "OddX": 4.0, "Odd2": 2.9, "Odd_OV25": 1.33, "Odd_UN25": 3.1, "Odd_GG": 1.33, "Odd_NG": 3.0, "Campionato_AS": "Bundesliga", "lam_h": 0.9809470056866837, "lam_a": 0.9222518159647449, "Prob1": 0.3568220272, "ProbX": 0.3177225428, "Prob2": 0.32545543, "Fair1": 2.802517568343662, "FairX": 3.1474002165136894, "Fair2": 3.0726173473277125, "Value1": -0.23283264152000005, "ValueX": 0.27089017120000003, "Value2": -0.05617925300000004, "Value_Max": 0.27089017120000003, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "4", "Kelly": 0.09029672373333335, "RiskFlag": "OK", "Prob_OV25": 0.29714330866709826, "Prob_GG": 0.3765124357827766, "Value_OV25": -0.6047993994727593, "Value_GG": -0.49923846040890707, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Wolfsburg", "Away": "Bayern Monaco", "Campionato": "Bundesliga", "Match_ID": "20260509_WOLFSBURG_BAYERN_MONAC", "Odd1": 4.35, "OddX": 4.4, "Odd2": 1.65, "Odd_OV25": 1.27, "Odd_UN25": 3.4, "Odd_GG": 1.3, "Odd_NG": 3.2, "Campionato_AS": "Bundesliga", "lam_h": 1.392751686835187, "lam_a": 1.7279034657384107, "Prob1": 0.310829835, "ProbX": 0.2341352207, "Prob2": 0.4550349442, "Fair1": 3.217194385474612, "FairX": 4.271036185885552, "Fair2": 2.1976334185896573, "Value1": 0.3521097822499999, "ValueX": 0.030194971080000244, "Value2": -0.24919234206999996, "Value_Max": 0.3521097822499999, "Confidence": 0.9285514984999997, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "4.3499999999999996", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.6032914859709377, "Prob_GG": 0.6180808960046345, "Value_OV25": -0.2338198128169091, "Value_GG": -0.19649483519397515, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Liverpool", "Away": "Chelsea", "Campionato": "Premier League", "Match_ID": "20260509_LIVERPOOL_CHELSEA", "Odd1": 1.85, "OddX": 3.85, "Odd2": 3.85, "Odd_OV25": 1.4, "Odd_UN25": 2.75, "Odd_GG": 1.37, "Odd_NG": 2.85, "Campionato_AS": "Premier League", "lam_h": 0.9851932713004568, "lam_a": 0.8491506128104528, "Prob1": 0.3748566214, "ProbX": 0.3240182032, "Prob2": 0.3011251754, "Fair1": 2.6676866378009776, "FairX": 3.086246359383552, "Fair2": 3.3208780988558955, "Value1": -0.30651525040999994, "ValueX": 0.24747008232, "Value2": 0.15933192529000006, "Value_Max": 0.24747008232, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "3.85", "Kelly": 0.08683160783157895, "RiskFlag": "OK", "Prob_OV25": 0.2785921247076031, "Prob_GG": 0.3585730753189474, "Value_OV25": -0.6099710254093558, "Value_GG": -0.508754886813042, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Middlesbrough", "Away": "Southampton", "Campionato": "Championship", "Match_ID": "20260509_MIDDLESBROUG_SOUTHAMPTON", "Odd1": 2.25, "OddX": 3.25, "Odd2": 3.2, "Odd_OV25": 2.0, "Odd_UN25": 1.72, "Odd_GG": 1.8, "Odd_NG": 1.9, "Campionato_AS": "Championship", "lam_h": 2.7053143673859177, "lam_a": 0.8255328491151798, "Prob1": 0.7695283175, "ProbX": 0.1416446956, "Prob2": 0.088826987, "Fair1": 1.2994973378611243, "FairX": 7.059918451333803, "Fair2": 11.257839917501649, "Value1": 0.7314387143749999, "ValueX": -0.5396547393, "Value2": -0.7157536416, "Value_Max": 0.7314387143749999, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "2.25", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.6848205768299349, "Prob_GG": 0.5244292519317723, "Value_OV25": 0.3696411536598698, "Value_GG": -0.05602734652280994, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Sunderland", "Away": "Manchester United", "Campionato": "Championship", "Match_ID": "20260509_SUNDERLAND_MANCHESTER_U", "Odd1": 3.9, "OddX": 3.75, "Odd2": 1.87, "Odd_OV25": 1.68, "Odd_UN25": 2.05, "Odd_GG": 1.65, "Odd_NG": 2.1, "Campionato_AS": "Championship", "lam_h": 0.9078600655813778, "lam_a": 2.2356966625968804, "Prob1": 0.1390549916, "ProbX": 0.1864897579, "Prob2": 0.6744552505, "Fair1": 7.191399521108597, "FairX": 5.362224774489881, "Fair2": 1.48267805648879, "Value1": -0.45768553276, "ValueX": -0.300663407875, "Value2": 0.26123131843500014, "Value_Max": 0.26123131843500014, "Confidence": 0.9922447370700003, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "1.87", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.6081921082663788, "Prob_GG": 0.5328249860292735, "Value_OV25": 0.021762741887516368, "Value_GG": -0.12083877305169866, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Brighton", "Away": "Wolverhampton", "Campionato": "Premier League", "Match_ID": "20260509_BRIGHTON_WOLVERHAMPTO", "Odd1": 1.27, "OddX": 6.0, "Odd2": 9.5, "Odd_OV25": 1.47, "Odd_UN25": 2.5, "Odd_GG": 1.9, "Odd_NG": 1.8, "Campionato_AS": "Premier League", "lam_h": 1.4378837398650806, "lam_a": 0.44710719143735983, "Prob1": 0.6198670313, "ProbX": 0.266295438, "Prob2": 0.1138375308, "Fair1": 1.613249212339582, "FairX": 3.7552276806183964, "Fair2": 8.784449144077886, "Value1": -0.21276887024900004, "ValueX": 0.597772628, "Value2": 0.08145654260000001, "Value_Max": 0.597772628, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "6", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.29222931249798023, "Prob_GG": 0.2749253876350622, "Value_OV25": -0.570422910627969, "Value_GG": -0.47764176349338183, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Fulham FC", "Away": "Bournemouth", "Campionato": "Premier League", "Match_ID": "20260509_FULHAM_FC_BOURNEMOUTH", "Odd1": 2.75, "OddX": 3.6, "Odd2": 2.4, "Odd_OV25": 1.5, "Odd_UN25": 2.4, "Odd_GG": 1.45, "Odd_NG": 2.55, "Campionato_AS": "Premier League", "lam_h": 0.28604473779827183, "lam_a": 1.8602139787660805, "Prob1": 0.0494165011, "ProbX": 0.1879176568, "Prob2": 0.762665842, "Fair1": 20.236155489365473, "FairX": 5.321479721643698, "Fair2": 1.3111902289705535, "Value1": -0.8641046219749999, "ValueX": -0.32349643551999996, "Value2": 0.8303980207999999, "Value_Max": 0.8303980207999999, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "NG", "TipoScommessa": "2", "OddsBet": "2.4", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.36284351958278904, "Prob_GG": 0.2100524441096368, "Value_OV25": -0.45573472062581644, "Value_GG": -0.6954239560410267, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Manchester City", "Away": "Brentford", "Campionato": "Premier League", "Match_ID": "20260509_MANCHESTER_C_BRENTFORD", "Odd1": 1.33, "OddX": 5.75, "Odd2": 7.5, "Odd_OV25": 1.33, "Odd_UN25": 3.05, "Odd_GG": 1.6, "Odd_NG": 2.2, "Campionato_AS": "Premier League", "lam_h": 1.922915276051706, "lam_a": 1.3976884035261816, "Prob1": 0.4984206326, "ProbX": 0.2216235587, "Prob2": 0.2799558088, "Fair1": 2.006337488044029, "FairX": 4.51215568356452, "Fair2": 3.5719923236684776, "Value1": -0.33710055864199984, "ValueX": 0.2743354625250001, "Value2": 1.099668566, "Value_Max": 1.099668566, "Confidence": 1.0, "Decision": "WATCH", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "7.5", "Kelly": 0.1, "RiskFlag": "RISK", "Prob_OV25": 0.6446945464558669, "Prob_GG": 0.6427831728956303, "Value_OV25": -0.14255625321369703, "Value_GG": 0.028453076633008445, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Cagliari", "Away": "Udinese", "Campionato": "Serie A", "Match_ID": "20260509_CAGLIARI_UDINESE", "Odd1": 2.5, "OddX": 3.1, "Odd2": 3.0, "Odd_OV25": 2.15, "Odd_UN25": 1.63, "Odd_GG": 1.85, "Odd_NG": 1.85, "Campionato_AS": "Serie A", "lam_h": 1.352510852942942, "lam_a": 1.4882595325223613, "Prob1": 0.3444047156, "ProbX": 0.2500615734, "Prob2": 0.4055337111, "Fair1": 2.90356070838886, "FairX": 3.999015068182403, "Fair2": 2.465886244789675, "Value1": -0.13898821099999992, "ValueX": -0.22480912245999995, "Value2": 0.21660113329999997, "Value_Max": 0.21660113329999997, "Confidence": 0.79541575104, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "3", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.5402079137842173, "Prob_GG": 0.5740252591805799, "Value_OV25": 0.16144701463606714, "Value_GG": 0.06194672948407298, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Lazio", "Away": "Inter", "Campionato": "Serie A", "Match_ID": "20260509_LAZIO_INTER", "Odd1": 4.5, "OddX": 3.6, "Odd2": 1.8, "Odd_OV25": 1.72, "Odd_UN25": 2.0, "Odd_GG": 1.68, "Odd_NG": 2.05, "Campionato_AS": "Serie A", "lam_h": 0.9989662297207276, "lam_a": 1.133438578155835, "Prob1": 0.3177785707, "ProbX": 0.2959152815, "Prob2": 0.3863061478, "Fair1": 3.146845294813959, "FairX": 3.3793455847598732, "Fair2": 2.5886204651284093, "Value1": 0.43000356815000007, "ValueX": 0.0652950134000001, "Value2": -0.30464893396000003, "Value_Max": 0.43000356815000007, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "4.5", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.3591110427472902, "Prob_GG": 0.4283675268166, "Value_OV25": -0.38232900647466084, "Value_GG": -0.280342554948112, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Lecce", "Away": "Juventus", "Campionato": "Serie A", "Match_ID": "20260509_LECCE_JUVENTUS", "Odd1": 7.0, "OddX": 4.25, "Odd2": 1.47, "Odd_OV25": 1.7, "Odd_UN25": 2.05, "Odd_GG": 1.85, "Odd_NG": 1.85, "Campionato_AS": "Serie A", "lam_h": 1.2000163620211481, "lam_a": 2.4064630898431707, "Prob1": 0.1757681623, "ProbX": 0.1839975863, "Prob2": 0.6402342514, "Fair1": 5.689312483640844, "FairX": 5.434853902754702, "Fair2": 1.561928306418003, "Value1": 0.2303771361, "ValueX": -0.21801025822499998, "Value2": -0.05885565044199992, "Value_Max": 0.2303771361, "Confidence": 0.63106153712, "Decision": "WATCH", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "7", "Kelly": 0.03839618935, "RiskFlag": "RISK", "Prob_OV25": 0.6983987407353905, "Prob_GG": 0.6358244425841874, "Value_OV25": 0.18727785925016405, "Value_GG": 0.1762752187807466, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Elche", "Away": "Alavés", "Campionato": "La Liga", "Match_ID": "20260509_ELCHE_ALAV_S", "Odd1": 2.25, "OddX": 3.25, "Odd2": 3.25, "Odd_OV25": 1.8, "Odd_UN25": 1.9, "Odd_GG": 1.65, "Odd_NG": 2.1, "Campionato_AS": "La Liga", "lam_h": 1.1303299154305415, "lam_a": 0.6172921587335173, "Prob1": 0.4806044987, "ProbX": 0.3186440245, "Prob2": 0.2007514768, "Fair1": 2.080712941108389, "FairX": 3.1382982987650534, "Fair2": 4.98128340543296, "Value1": 0.08136012207499999, "ValueX": 0.03559307962499991, "Value2": -0.3475577004, "Value_Max": 0.08136012207499999, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "NG", "TipoScommessa": "1", "OddsBet": "2.25", "Kelly": 0.06508809765999998, "RiskFlag": "OK", "Prob_OV25": 0.2553976669551521, "Prob_GG": 0.3118578766140739, "Value_OV25": -0.5402841994807263, "Value_GG": -0.4854345035867781, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "AD Ceuta", "Away": "Castellon", "Campionato": "La Liga", "Match_ID": "20260509_AD_CEUTA_CASTELLON", "Odd1": 4.2, "OddX": 4.25, "Odd2": 1.63, "Odd_OV25": 1.52, "Odd_UN25": 2.35, "Odd_GG": 1.55, "Odd_NG": 2.2, "Campionato_AS": "La Liga", "lam_h": 1.711267761117251, "lam_a": 0.5124101859069717, "Prob1": 0.6681191013, "ProbX": 0.2260398772, "Prob2": 0.1058410215, "Fair1": 1.496739126383663, "FairX": 4.423998156374862, "Fair2": 9.448132546604343, "Value1": 1.8061002254600003, "ValueX": -0.03933052190000008, "Value2": -0.827479134955, "Value_Max": 1.8061002254600003, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "4.2", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.38362826910705594, "Prob_GG": 0.3285237251196046, "Value_OV25": -0.416885030957275, "Value_GG": -0.4907882260646129, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Albacete", "Away": "Cultural Leonesa", "Campionato": "La Liga", "Match_ID": "20260509_ALBACETE_CULTURAL_LEO", "Odd1": 2.15, "OddX": 3.0, "Odd2": 3.35, "Odd_OV25": 1.83, "Odd_UN25": 1.85, "Odd_GG": 1.65, "Odd_NG": 2.05, "Campionato_AS": "La Liga", "lam_h": 0.9372354794491207, "lam_a": 1.0458375398415924, "Prob1": 0.3167467728, "ProbX": 0.3094574898, "Prob2": 0.3737957373, "Fair1": 3.1570960965446653, "FairX": 3.231461615766005, "Fair2": 2.6752579021451566, "Value1": -0.31899443848, "ValueX": -0.07162753060000004, "Value2": 0.2522157199549999, "Value_Max": 0.2522157199549999, "Confidence": 0.7701726795141378, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "2", "OddsBet": "3.35", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.31874205821780066, "Prob_GG": 0.39453898423995715, "Value_OV25": -0.41670203346142476, "Value_GG": -0.34901067600407076, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Siviglia", "Away": "Espanyol", "Campionato": "La Liga", "Match_ID": "20260509_SIVIGLIA_ESPANYOL", "Odd1": 2.05, "OddX": 3.35, "Odd2": 3.65, "Odd_OV25": 2.05, "Odd_UN25": 1.68, "Odd_GG": 1.8, "Odd_NG": 1.9, "Campionato_AS": "La Liga", "lam_h": 0.9354987379361666, "lam_a": 0.7871824548002256, "Prob1": 0.3730039491, "ProbX": 0.3363861366, "Prob2": 0.2906099143, "Fair1": 2.680936763304633, "FairX": 2.9727741163991834, "Fair2": 3.441038831757434, "Value1": -0.23534190434500002, "ValueX": 0.1268935576100001, "Value2": 0.060726187195, "Value_Max": 0.1268935576100001, "Confidence": 0.7764837555811828, "Stake": 0.25, "Decision": "BET", "Mercato": "NG", "TipoScommessa": "X", "OddsBet": "3.35", "Kelly": 0.053997258557446845, "RiskFlag": "OK", "Prob_OV25": 0.24877576610179442, "Prob_GG": 0.3310712365944255, "Value_OV25": -0.49000967949132146, "Value_GG": -0.40407177413003414, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Burgos CF", "Away": "Almería", "Campionato": "La Liga", "Match_ID": "20260509_BURGOS_CF_ALMER_A", "Odd1": 2.65, "OddX": 3.15, "Odd2": 2.5, "Odd_OV25": 1.9, "Odd_UN25": 1.8, "Odd_GG": 1.7, "Odd_NG": 2.0, "Campionato_AS": "La Liga", "lam_h": 0.9684858678510411, "lam_a": 0.9627227060804098, "Prob1": 0.3439748416, "ProbX": 0.3151124474, "Prob2": 0.340912711, "Fair1": 2.907189361141928, "FairX": 3.1734703222643943, "Fair2": 2.9333021847929865, "Value1": -0.08846666975999995, "ValueX": -0.00739579069000007, "Value2": -0.1477182225, "Value_Max": -0.00739579069000007, "Confidence": 0.7290845199580022, "Decision": "SKIP", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "3.15", "Kelly": 0.0, "RiskFlag": "OK", "Prob_OV25": 0.30471123861166616, "Prob_GG": 0.38346362832117215, "Value_OV25": -0.42104864663783437, "Value_GG": -0.3481118318540074, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Real Valladolid", "Away": "Real Saragozza", "Campionato": "La Liga", "Match_ID": "20260509_REAL_VALLADO_REAL_SARAGOZ", "Odd1": 2.05, "OddX": 3.15, "Odd2": 3.45, "Odd_OV25": 2.05, "Odd_UN25": 1.7, "Odd_GG": 1.82, "Odd_NG": 1.85, "Campionato_AS": "La Liga", "lam_h": 1.076919675319939, "lam_a": 1.521110499050839, "Prob1": 0.2686019444, "ProbX": 0.2563348169, "Prob2": 0.4750632388, "Fair1": 3.7229812398930644, "FairX": 3.9011477726418837, "Fair2": 2.104982912434941, "Value1": -0.44936601398, "ValueX": -0.19254532676500014, "Value2": 0.6389681738600002, "Value_Max": 0.6389681738600002, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "3.45", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.481075797471613, "Prob_GG": 0.5153076830990507, "Value_OV25": -0.01379461518319347, "Value_GG": -0.06214001675972758, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Atletico Madrid", "Away": "Celta Vigo", "Campionato": "La Liga", "Match_ID": "20260509_ATLETICO_MAD_CELTA_VIGO", "Odd1": 2.05, "OddX": 3.5, "Odd2": 3.45, "Odd_OV25": 1.65, "Odd_UN25": 2.1, "Odd_GG": 1.57, "Odd_NG": 2.25, "Campionato_AS": "La Liga", "lam_h": 2.237709286070362, "lam_a": 0.88249833762567, "Prob1": 0.6807623243, "ProbX": 0.1850830792, "Prob2": 0.1341545965, "Fair1": 1.4689414562244745, "FairX": 5.402979053095416, "Fair2": 7.454086748343356, "Value1": 0.39556276481499997, "ValueX": -0.3522092228, "Value2": -0.537166642075, "Value_Max": 0.39556276481499997, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "2.0499999999999998", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.6031953171678783, "Prob_GG": 0.5236974140888441, "Value_OV25": -0.004727726673000698, "Value_GG": -0.1777950598805147, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Real Sociedad", "Away": "Real Betis", "Campionato": "La Liga", "Match_ID": "20260509_REAL_SOCIEDA_REAL_BETIS", "Odd1": 2.55, "OddX": 3.5, "Odd2": 2.6, "Odd_OV25": 1.6, "Odd_UN25": 2.2, "Odd_GG": 1.53, "Odd_NG": 2.35, "Campionato_AS": "La Liga", "lam_h": 1.8487465437408008, "lam_a": 1.2901071036227874, "Prob1": 0.5053071133, "ProbX": 0.2273242951, "Prob2": 0.2673685916, "Fair1": 1.9789945038954986, "FairX": 4.399001873337383, "Fair2": 3.740155094567211, "Value1": 0.2885331389149999, "ValueX": -0.20436496715000008, "Value2": -0.30484166184000006, "Value_Max": 0.2885331389149999, "Confidence": 0.9791891231499997, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "2.5499999999999998", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.6071890250820643, "Prob_GG": 0.6106567617340525, "Value_OV25": -0.028497559868697064, "Value_GG": -0.06569515454689978, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Malaga", "Away": "Sporting Gijón", "Campionato": "La Liga", "Match_ID": "20260509_MALAGA_SPORTING_GIJ", "Odd1": 1.5, "OddX": 4.1, "Odd2": 5.25, "Odd_OV25": 1.7, "Odd_UN25": 2.0, "Odd_GG": 1.8, "Odd_NG": 1.87, "Campionato_AS": "La Liga", "Value_Max": 0.0, "Confidence": 0.1, "Decision": "—", "Mercato": "NG", "TipoScommessa": "2", "OddsBet": "5.25", "RiskFlag": "RISK", "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Besiktas", "Away": "Trabzonspor", "Campionato": "Super Lig", "Match_ID": "20260509_BESIKTAS_TRABZONSPOR", "Odd1": 2.05, "OddX": 3.55, "Odd2": 3.2, "Odd_OV25": 1.6, "Odd_UN25": 2.2, "Odd_GG": 1.53, "Odd_NG": 2.35, "Campionato_AS": "Super Lig", "lam_h": 0.9899959457786054, "lam_a": 0.5628480453209117, "Prob1": 0.4488718212, "ProbX": 0.3470594165, "Prob2": 0.2040687623, "Fair1": 2.227807478149622, "FairX": 2.881351009244263, "Fair2": 4.900309036666314, "Value1": -0.07981276654000014, "ValueX": 0.23206092857499994, "Value2": -0.3469799606399999, "Value_Max": 0.23206092857499994, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "3.55", "Kelly": 0.09100428571568625, "RiskFlag": "OK", "Prob_OV25": 0.20453019896211655, "Prob_GG": 0.2704824535556522, "Value_OV25": -0.6727516816606135, "Value_GG": -0.5861618460598521, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Göztepe", "Away": "Gaziantep FK", "Campionato": "Super Lig", "Match_ID": "20260509_G_ZTEPE_GAZIANTEP_FK", "Odd1": 1.48, "OddX": 4.25, "Odd2": 6.0, "Odd_OV25": 1.78, "Odd_UN25": 1.93, "Odd_GG": 1.93, "Odd_NG": 1.78, "Campionato_AS": "Super Lig", "lam_h": 1.182126884471079, "lam_a": 1.0641717597834068, "Prob1": 0.3858803502, "ProbX": 0.2870606064, "Prob2": 0.3270590434, "Fair1": 2.5914768644780812, "FairX": 3.4835849214592898, "Fair2": 3.0575519013457737, "Value1": -0.428897081704, "ValueX": 0.22000757719999986, "Value2": 0.9623542604000002, "Value_Max": 0.9623542604000002, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "6", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.3896730394926575, "Prob_GG": 0.45415069021381804, "Value_OV25": -0.3063819897030696, "Value_GG": -0.12348916788733122, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Basaksehir", "Away": "Samsunspor", "Campionato": "Super Lig", "Match_ID": "20260509_BASAKSEHIR_SAMSUNSPOR", "Odd1": 1.83, "OddX": 3.55, "Odd2": 3.95, "Odd_OV25": 1.75, "Odd_UN25": 1.95, "Odd_GG": 1.7, "Odd_NG": 2.05, "Campionato_AS": "Super Lig", "lam_h": 1.2825851296940356, "lam_a": 0.5878042163827626, "Prob1": 0.5354621734, "ProbX": 0.2940281836, "Prob2": 0.170509643, "Fair1": 1.867545551631304, "FairX": 3.401034512257552, "Fair2": 5.864770944362367, "Value1": -0.02010422267799994, "ValueX": 0.043800051779999905, "Value2": -0.32648691015, "Value_Max": 0.043800051779999905, "Confidence": 1.0, "Decision": "WATCH", "Mercato": "NG", "TipoScommessa": "X", "OddsBet": "3.55", "Kelly": 0.017176490894117612, "RiskFlag": "OK", "Prob_OV25": 0.2882924955221646, "Prob_GG": 0.3211983950150233, "Value_OV25": -0.49548813283621196, "Value_GG": -0.4539627284744605, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Konyaspor", "Away": "Fenerbahçe", "Campionato": "Super Lig", "Match_ID": "20260509_KONYASPOR_FENERBAH_E", "Odd1": 6.75, "OddX": 4.4, "Odd2": 1.42, "Odd_OV25": 1.6, "Odd_UN25": 2.2, "Odd_GG": 1.8, "Odd_NG": 1.9, "Campionato_AS": "Super Lig", "lam_h": 0.5883245180986052, "lam_a": 1.0888956399569936, "Prob1": 0.1975893793, "ProbX": 0.3272169296, "Prob2": 0.4751936911, "Fair1": 5.061000766046741, "FairX": 3.056076594882883, "Fair2": 2.104405043099698, "Value1": 0.33372831027499994, "ValueX": 0.43975449024000013, "Value2": -0.32522495863800005, "Value_Max": 0.43975449024000013, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "4.4000000000000004", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.23677585454051353, "Prob_GG": 0.2950479555701294, "Value_OV25": -0.6211586327351784, "Value_GG": -0.4689136799737671, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Eyupspor", "Away": "Caykur Rizespor", "Campionato": "Super Lig", "Match_ID": "20260509_EYUPSPOR_CAYKUR_RIZES", "Odd1": 2.1, "OddX": 3.65, "Odd2": 3.05, "Odd_OV25": 1.73, "Odd_UN25": 2.0, "Odd_GG": 1.65, "Odd_NG": 2.15, "Campionato_AS": "Super Lig", "Value_Max": 0.0, "Confidence": 0.1, "Decision": "—", "Mercato": "NG", "TipoScommessa": "2", "OddsBet": "3.05", "RiskFlag": "RISK", "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Galatasaray", "Away": "Antalyaspor", "Campionato": "Super Lig", "Match_ID": "20260509_GALATASARAY_ANTALYASPOR", "Odd1": 1.12, "OddX": 8.5, "Odd2": 13.0, "Odd_OV25": 1.35, "Odd_UN25": 2.9, "Odd_GG": 2.05, "Odd_NG": 1.7, "Campionato_AS": "Super Lig", "lam_h": 1.941579165501119, "lam_a": 0.6287141994391476, "Prob1": 0.6860458965, "ProbX": 0.2025927384, "Prob2": 0.1113613651, "Fair1": 1.457628425593243, "FairX": 4.9360110727443525, "Fair2": 8.97977497942866, "Value1": -0.23162859591999985, "ValueX": 0.7220382764, "Value2": 0.44769774630000003, "Value_Max": 0.7220382764, "Confidence": 1.0, "Decision": "WATCH", "Mercato": "X", "TipoScommessa": "X", "OddsBet": "8.5", "Kelly": 0.09627177018666666, "RiskFlag": "RISK", "Prob_OV25": 0.4740874378392106, "Prob_GG": 0.3997588510313124, "Value_OV25": -0.35998195891706564, "Value_GG": -0.1804943553858096, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Genclerbirligi SK", "Away": "Kasimpasa", "Campionato": "Super Lig", "Match_ID": "20260509_GENCLERBIRLI_KASIMPASA", "Odd1": 2.35, "OddX": 3.05, "Odd2": 3.05, "Odd_OV25": 2.1, "Odd_UN25": 1.65, "Odd_GG": 1.85, "Odd_NG": 1.85, "Campionato_AS": "Super Lig", "lam_h": 1.4732840505655382, "lam_a": 1.4937844952999648, "Prob1": 0.3732085591, "ProbX": 0.2445218273, "Prob2": 0.3822696136, "Fair1": 2.679466951164036, "FairX": 4.08961445708941, "Fair2": 2.6159547199751585, "Value1": -0.12295988611499997, "ValueX": -0.254208426735, "Value2": 0.16592232147999986, "Value_Max": 0.16592232147999986, "Confidence": 0.6443523696426874, "Stake": 0.25, "Decision": "BET", "Mercato": "OV2.5", "TipoScommessa": "2", "OddsBet": "3.05", "Kelly": 0.08093771779512189, "RiskFlag": "OK", "Prob_OV25": 0.5693915533815922, "Prob_GG": 0.5977609418125304, "Value_OV25": 0.1957222621013437, "Value_GG": 0.10585774235318124, "Segnale": "BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Kocaelispor", "Away": "Fatih Karagumruk SK", "Campionato": "Super Lig", "Match_ID": "20260509_KOCAELISPOR_FATIH_KARAGU", "Odd1": 2.0, "OddX": 3.25, "Odd2": 3.6, "Odd_OV25": 2.05, "Odd_UN25": 1.7, "Odd_GG": 1.85, "Odd_NG": 1.85, "Campionato_AS": "Super Lig", "lam_h": 0.9139436120038452, "lam_a": 0.7163706550349945, "Prob1": 0.382670626, "ProbX": 0.3466885731, "Prob2": 0.2706408009, "Fair1": 2.6132133800099933, "FairX": 2.8844331125720624, "Fair2": 3.6949343804576364, "Value1": -0.23465874799999997, "ValueX": 0.12673786257499997, "Value2": -0.025693116759999968, "Value_Max": 0.12673786257499997, "Confidence": 0.875360542444046, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "3.25", "Kelly": 0.05632793892222221, "RiskFlag": "OK", "Prob_OV25": 0.22450437846939808, "Prob_GG": 0.3064060015124202, "Value_OV25": -0.539766024137734, "Value_GG": -0.43314889720202265, "Segnale": "NO BET"}, {"Date": "SABATO 09 MAGGIO 2026", "Home": "Alanyaspor", "Away": "Kayserispor", "Campionato": "Super Lig", "Match_ID": "20260509_ALANYASPOR_KAYSERISPOR", "Odd1": 2.25, "OddX": 3.5, "Odd2": 2.9, "Odd_OV25": 1.75, "Odd_UN25": 1.98, "Odd_GG": 1.63, "Odd_NG": 2.15, "Campionato_AS": "Super Lig", "lam_h": 1.6078780942939153, "lam_a": 0.7093631515291796, "Prob1": 0.5896221537, "ProbX": 0.2473569057, "Prob2": 0.1630209406, "Fair1": 1.6960014031440216, "FairX": 4.042741386863978, "Fair2": 6.134181267262299, "Value1": 0.326649845825, "ValueX": -0.13425083005000016, "Value2": -0.52723927226, "Value_Max": 0.326649845825, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "2.25", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.4085280653218315, "Prob_GG": 0.40627546548499305, "Value_OV25": -0.28507588568679487, "Value_GG": -0.3377709912594613, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Gent", "Away": "Anderlecht", "Campionato": "Jupiler Pro", "Match_ID": "20260510_GENT_ANDERLECHT", "Odd1": 2.4, "OddX": 3.3, "Odd2": 2.85, "Odd_OV25": 1.72, "Odd_UN25": 2.0, "Odd_GG": 1.6, "Odd_NG": 2.2, "Campionato_AS": "Jupiler Pro", "lam_h": 1.0306965786056228, "lam_a": 0.8424308487593584, "Prob1": 0.3910680755, "ProbX": 0.3189583801, "Prob2": 0.2899735444, "Fair1": 2.557099550305788, "FairX": 3.1352052881836165, "Fair2": 3.4485904638961262, "Value1": -0.061436618800000065, "ValueX": 0.05256265432999996, "Value2": -0.17357539845999992, "Value_Max": 0.05256265432999996, "Confidence": 1.0, "Decision": "WATCH", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "3.3", "Kelly": 0.022853327969565202, "RiskFlag": "OK", "Prob_OV25": 0.28903043628614156, "Prob_GG": 0.36622166554673163, "Value_OV25": -0.5028676495878366, "Value_GG": -0.41404533512522934, "Segnale": "NO BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Anversa", "Away": "Royal Charleroi", "Campionato": "Jupiler Pro", "Match_ID": "20260510_ANVERSA_ROYAL_CHARLE", "Odd1": 2.3, "OddX": 3.15, "Odd2": 3.05, "Odd_OV25": 1.95, "Odd_UN25": 1.75, "Odd_GG": 1.75, "Odd_NG": 1.95, "Campionato_AS": "Jupiler Pro", "lam_h": 2.264545853066969, "lam_a": 1.2151156000766261, "Prob1": 0.6100147444, "ProbX": 0.1952285762, "Prob2": 0.1947566794, "Fair1": 1.639304638420802, "FairX": 5.122200957791956, "Fair2": 5.134612086634293, "Value1": 0.40303391211999995, "ValueX": -0.38502998496999996, "Value2": -0.40599212783000005, "Value_Max": 0.40303391211999995, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "2.2999999999999998", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.6753746045060043, "Prob_GG": 0.6302649266328804, "Value_OV25": 0.3169804787867083, "Value_GG": 0.10296362160754069, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Union Saint Gilloise", "Away": "Yellow-Red KV Mechelen", "Campionato": "Jupiler Pro", "Match_ID": "20260510_UNION_SAINT_YELLOW_RED_K", "Odd1": 1.3, "OddX": 5.25, "Odd2": 8.0, "Odd_OV25": 1.57, "Odd_UN25": 2.25, "Odd_GG": 1.95, "Odd_NG": 1.77, "Campionato_AS": "Jupiler Pro", "lam_h": 1.3348212472765926, "lam_a": 0.662082339047547, "Prob1": 0.5299332474, "ProbX": 0.2849892989, "Prob2": 0.1850774537, "Fair1": 1.8870301210695466, "FairX": 3.508903681155026, "Fair2": 5.403143278710452, "Value1": -0.31108677838, "ValueX": 0.49619381922500017, "Value2": 0.48061962960000026, "Value_Max": 0.49619381922500017, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "5.25", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.3224854764434071, "Prob_GG": 0.35677357224226275, "Value_OV25": -0.4936978019838508, "Value_GG": -0.3042915341275877, "Segnale": "NO BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Genk", "Away": "KVC Westerlo", "Campionato": "Jupiler Pro", "Match_ID": "20260510_GENK_KVC_WESTERLO", "Odd1": 1.58, "OddX": 4.25, "Odd2": 4.75, "Odd_OV25": 1.5, "Odd_UN25": 2.45, "Odd_GG": 1.57, "Odd_NG": 2.25, "Campionato_AS": "Jupiler Pro", "lam_h": 1.305777235006071, "lam_a": 0.617613870655919, "Prob1": 0.533874512, "ProbX": 0.2899407664, "Prob2": 0.1761847216, "Fair1": 1.873099347361239, "FairX": 3.4489803293835815, "Fair2": 5.675861056047438, "Value1": -0.1564782710399999, "ValueX": 0.23224825719999997, "Value2": -0.16312257239999994, "Value_Max": 0.23224825719999997, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "4.25", "Kelly": 0.07146100221538461, "RiskFlag": "OK", "Prob_OV25": 0.30259814652889305, "Prob_GG": 0.3359192170498456, "Value_OV25": -0.5461027802066605, "Value_GG": -0.47260682923174235, "Segnale": "NO BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "PSG", "Away": "Brest", "Campionato": "Ligue 1", "Match_ID": "20260510_PSG_BREST", "Odd1": 1.15, "OddX": 8.25, "Odd2": 13.5, "Odd_OV25": 1.32, "Odd_UN25": 3.15, "Odd_GG": 1.9, "Odd_NG": 1.8, "Campionato_AS": "Ligue 1", "lam_h": 2.4107062642048813, "lam_a": 0.4323989987398011, "Prob1": 0.8137281507, "ProbX": 0.1367426573, "Prob2": 0.049529192, "Fair1": 1.2289116446810422, "FairX": 7.313006926624937, "Fair2": 20.190113337605023, "Value1": -0.06421262669500005, "ValueX": 0.12812692272499993, "Value2": -0.33135590800000003, "Value_Max": 0.12812692272499993, "Confidence": 1.0, "Decision": "WATCH", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "8.25", "Kelly": 0.017672678996551713, "RiskFlag": "RISK", "Prob_OV25": 0.5407577398368176, "Prob_GG": 0.3195422420350849, "Value_OV25": -0.28619978341540064, "Value_GG": -0.39286974013333875, "Segnale": "NO BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Monaco", "Away": "Lille", "Campionato": "Ligue 1", "Match_ID": "20260510_MONACO_LILLE", "Odd1": 2.3, "OddX": 3.75, "Odd2": 2.75, "Odd_OV25": 1.6, "Odd_UN25": 2.2, "Odd_GG": 1.5, "Odd_NG": 2.4, "Campionato_AS": "Ligue 1", "lam_h": 0.8851204842795912, "lam_a": 1.1834776044329312, "Prob1": 0.2744217365, "ProbX": 0.2977050402, "Prob2": 0.4278732233, "Fair1": 3.644026208543433, "FairX": 3.3590294585815346, "Fair2": 2.337140876186257, "Value1": -0.36883000605000005, "ValueX": 0.11639390075000011, "Value2": 0.17665136407500004, "Value_Max": 0.17665136407500004, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "2", "OddsBet": "2.75", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.34188391109606475, "Prob_GG": 0.4074863557109173, "Value_OV25": -0.4529857422462964, "Value_GG": -0.3887704664336241, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Angers", "Away": "Strasburgo", "Campionato": "Ligue 1", "Match_ID": "20260510_ANGERS_STRASBURGO", "Odd1": 2.85, "OddX": 3.25, "Odd2": 2.45, "Odd_OV25": 1.9, "Odd_UN25": 1.8, "Odd_GG": 1.68, "Odd_NG": 2.05, "Campionato_AS": "Ligue 1", "lam_h": 0.913416925130938, "lam_a": 1.1608145148392117, "Prob1": 0.2870409304, "ProbX": 0.2986486447, "Prob2": 0.4143104249, "Fair1": 3.483823713246994, "FairX": 3.348416333864581, "Fair2": 2.4136491381827163, "Value1": -0.18193334835999997, "ValueX": -0.029391904724999862, "Value2": 0.015060541004999983, "Value_Max": 0.015060541004999983, "Confidence": 0.7795137238861352, "Decision": "SKIP", "Mercato": "NG", "TipoScommessa": "2", "OddsBet": "2.4500000000000002", "Kelly": 0.010386580003448264, "RiskFlag": "OK", "Prob_OV25": 0.3434067946690239, "Prob_GG": 0.41127084050582063, "Value_OV25": -0.34752709012885463, "Value_GG": -0.3090649879502214, "Segnale": "NO BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Stade Rennes FC", "Away": "Paris FC", "Campionato": "Ligue 1", "Match_ID": "20260510_STADE_RENNES_PARIS_FC", "Odd1": 1.5, "OddX": 4.65, "Odd2": 5.5, "Odd_OV25": 1.47, "Odd_UN25": 2.5, "Odd_GG": 1.57, "Odd_NG": 2.25, "Campionato_AS": "Ligue 1", "lam_h": 0.9196944161335133, "lam_a": 0.670019890613156, "Prob1": 0.3961703057, "ProbX": 0.3504238294, "Prob2": 0.2534058649, "Fair1": 2.5241669696396936, "FairX": 2.853687209891554, "Fair2": 3.9462385781584963, "Value1": -0.40574454145000005, "ValueX": 0.6294708067100001, "Value2": 0.3937322569499999, "Value_Max": 0.6294708067100001, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "4.6500000000000004", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.21398685503939796, "Prob_GG": 0.2936446398553254, "Value_OV25": -0.685439323092085, "Value_GG": -0.5389779154271391, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Auxerre", "Away": "Nizza", "Campionato": "Ligue 1", "Match_ID": "20260510_AUXERRE_NIZZA", "Odd1": 2.4, "OddX": 3.3, "Odd2": 2.9, "Odd_OV25": 1.85, "Odd_UN25": 1.85, "Odd_GG": 1.65, "Odd_NG": 2.1, "Campionato_AS": "Ligue 1", "lam_h": 0.8840262486340639, "lam_a": 1.19568668340527, "Prob1": 0.2718887405, "ProbX": 0.2963455083, "Prob2": 0.4317657512, "Fair1": 3.677975035527446, "FairX": 3.3744395376077985, "Fair2": 2.3160706869887555, "Value1": -0.3474670228000001, "ValueX": -0.022059822610000057, "Value2": 0.25212067847999986, "Value_Max": 0.25212067847999986, "Confidence": 0.8769476574399997, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "2.9", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.3448883311332438, "Prob_GG": 0.40935366705793186, "Value_OV25": -0.361956587403499, "Value_GG": -0.3245664493544125, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Metz", "Away": "Lorient", "Campionato": "Ligue 1", "Match_ID": "20260510_METZ_LORIENT", "Odd1": 3.15, "OddX": 3.65, "Odd2": 2.1, "Odd_OV25": 1.65, "Odd_UN25": 2.1, "Odd_GG": 1.55, "Odd_NG": 2.3, "Campionato_AS": "Ligue 1", "lam_h": 1.1725713489174554, "lam_a": 0.9750555249849291, "Prob1": 0.4033166055, "ProbX": 0.2936233718, "Prob2": 0.3030600227, "Fair1": 2.479441675257281, "FairX": 3.405723440439015, "Fair2": 3.299676384535558, "Value1": 0.270447307325, "ValueX": 0.07172530706999991, "Value2": -0.36357395233, "Value_Max": 0.270447307325, "Confidence": 0.9358365017506374, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "1", "OddsBet": "3.15", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.3632119382022292, "Prob_GG": 0.4300196023508435, "Value_OV25": -0.4007003019663219, "Value_GG": -0.33346961635619243, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Le Havre AC", "Away": "Marsiglia", "Campionato": "Ligue 1", "Match_ID": "20260510_LE_HAVRE_AC_MARSIGLIA", "Odd1": 3.5, "OddX": 3.65, "Odd2": 1.98, "Odd_OV25": 1.6, "Odd_UN25": 2.2, "Odd_GG": 1.55, "Odd_NG": 2.3, "Campionato_AS": "Ligue 1", "lam_h": 0.8999647964881573, "lam_a": 0.7884794326192786, "Prob1": 0.3606621226, "ProbX": 0.3411286902, "Prob2": 0.2982091872, "Fair1": 2.77267818641735, "FairX": 2.9314450198067803, "Fair2": 3.353350744788858, "Value1": 0.2623174291000001, "ValueX": 0.24511971922999987, "Value2": -0.409545809344, "Value_Max": 0.2623174291000001, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "1", "OddsBet": "3.5", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.23972948236359537, "Prob_GG": 0.32368742303568027, "Value_OV25": -0.6164328282182474, "Value_GG": -0.49828449429469557, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Tolosa FC", "Away": "Lione", "Campionato": "Ligue 1", "Match_ID": "20260510_TOLOSA_FC_LIONE", "Odd1": 4.25, "OddX": 3.9, "Odd2": 1.75, "Odd_OV25": 1.75, "Odd_UN25": 1.95, "Odd_GG": 1.72, "Odd_NG": 2.0, "Campionato_AS": "Ligue 1", "lam_h": 0.8346661154805554, "lam_a": 1.8445161388367164, "Prob1": 0.1648895377, "ProbX": 0.2225918971, "Prob2": 0.6125185652, "Fair1": 6.064666163473633, "FairX": 4.4925265161415435, "Fair2": 1.6326035761438173, "Value1": -0.29921946477499994, "ValueX": -0.13189160131, "Value2": 0.0719074891, "Value_Max": 0.0719074891, "Confidence": 0.58882240428, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "1.75", "Kelly": 0.09587665213333334, "RiskFlag": "OK", "Prob_OV25": 0.5012622240172101, "Prob_GG": 0.47649807300906444, "Value_OV25": -0.12279110796988235, "Value_GG": -0.18042331442440918, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Amburgo", "Away": "Friburgo", "Campionato": "Bundesliga", "Match_ID": "20260510_AMBURGO_FRIBURGO", "Odd1": 2.75, "OddX": 3.6, "Odd2": 2.4, "Odd_OV25": 1.65, "Odd_UN25": 2.1, "Odd_GG": 1.55, "Odd_NG": 2.3, "Campionato_AS": "Bundesliga", "lam_h": 1.1375213005833005, "lam_a": 1.0490034059414686, "Prob1": 0.3763244716, "ProbX": 0.2920103906, "Prob2": 0.3316651378, "Fair1": 2.657281350182596, "FairX": 3.4245356747247198, "Fair2": 3.0150892753853973, "Value1": 0.034892296900000064, "ValueX": 0.051237406160000054, "Value2": -0.20400366928000002, "Value_Max": 0.051237406160000054, "Confidence": 0.8473869349340651, "Decision": "WATCH", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "3.6", "Kelly": 0.019706694676923098, "RiskFlag": "OK", "Prob_OV25": 0.3736707669776036, "Prob_GG": 0.4414069596365444, "Value_OV25": -0.38344323448695405, "Value_GG": -0.3158192125633561, "Segnale": "NO BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Colonia", "Away": "Heidenheim", "Campionato": "Bundesliga", "Match_ID": "20260510_COLONIA_HEIDENHEIM", "Odd1": 1.9, "OddX": 4.1, "Odd2": 3.4, "Odd_OV25": 1.42, "Odd_UN25": 2.65, "Odd_GG": 1.42, "Odd_NG": 2.65, "Campionato_AS": "Bundesliga", "lam_h": 0.8995685411093479, "lam_a": 1.539878309182444, "Prob1": 0.2201003263, "ProbX": 0.2568774867, "Prob2": 0.523022187, "Fair1": 4.543382632868, "FairX": 3.89290635332271, "Fair2": 1.9119647786567033, "Value1": -0.5818093800299999, "ValueX": 0.05319769546999997, "Value2": 0.7782754358000001, "Value_Max": 0.7782754358000001, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "3.4", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.4405627207259476, "Prob_GG": 0.4660567708893506, "Value_OV25": -0.3744009365691545, "Value_GG": -0.33819938533712224, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Mainz", "Away": "Union Berlino", "Campionato": "Bundesliga", "Match_ID": "20260510_MAINZ_UNION_BERLIN", "Odd1": 1.77, "OddX": 3.85, "Odd2": 4.25, "Odd_OV25": 1.65, "Odd_UN25": 2.1, "Odd_GG": 1.63, "Odd_NG": 2.15, "Campionato_AS": "Bundesliga", "lam_h": 0.8569900386034213, "lam_a": 0.9431522495541369, "Prob1": 0.3122580241, "ProbX": 0.3284073662, "Prob2": 0.3593346097, "Fair1": 3.2024797533457527, "FairX": 3.0449986904100084, "Fair2": 2.7829214693092785, "Value1": -0.447303297343, "ValueX": 0.26436835986999996, "Value2": 0.5271720912249998, "Value_Max": 0.5271720912249998, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "2", "OddsBet": "4.25", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.2694170168819936, "Prob_GG": 0.35143924947723554, "Value_OV25": -0.5554619221447106, "Value_GG": -0.42715402335210606, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Crystal Palace", "Away": "Everton", "Campionato": "Premier League", "Match_ID": "20260510_CRYSTAL_PALA_EVERTON", "Odd1": 2.75, "OddX": 3.25, "Odd2": 2.6, "Odd_OV25": 1.95, "Odd_UN25": 1.75, "Odd_GG": 1.72, "Odd_NG": 2.0, "Campionato_AS": "Premier League", "lam_h": 0.953890198719902, "lam_a": 1.1890570363787059, "Prob1": 0.2937078497, "ProbX": 0.2931998721, "Prob2": 0.4130922782, "Fair1": 3.4047438671503776, "FairX": 3.4106426883396996, "Fair2": 2.420766624729419, "Value1": -0.1923034133249999, "ValueX": -0.04710041567500012, "Value2": 0.07403992331999998, "Value_Max": 0.07403992331999998, "Confidence": 0.6549933854963335, "Stake": 0.25, "Decision": "BET", "Mercato": "NG", "TipoScommessa": "2", "OddsBet": "2.6", "Kelly": 0.046274952074999987, "RiskFlag": "OK", "Prob_OV25": 0.36195165931240036, "Prob_GG": 0.42756088144591664, "Value_OV25": -0.2941942643408193, "Value_GG": -0.26459528391302334, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Nottingham Forest", "Away": "Newcastle United", "Campionato": "Premier League", "Match_ID": "20260510_NOTTINGHAM_F_NEWCASTLE_UN", "Odd1": 2.6, "OddX": 3.5, "Odd2": 2.55, "Odd_OV25": 1.65, "Odd_UN25": 2.1, "Odd_GG": 1.55, "Odd_NG": 2.3, "Campionato_AS": "Premier League", "lam_h": 1.1511412903602687, "lam_a": 1.1295946056809956, "Prob1": 0.3627935062, "ProbX": 0.2850953087, "Prob2": 0.3521111851, "Fair1": 2.756388917966801, "FairX": 3.5075989308974553, "Fair2": 2.8400120255083596, "Value1": -0.056736883879999866, "ValueX": -0.002166419549999965, "Value2": -0.10211647799500001, "Value_Max": -0.002166419549999965, "Confidence": 0.7388835533312341, "Decision": "SKIP", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "3.5", "Kelly": 0.0, "RiskFlag": "OK", "Prob_OV25": 0.39884632622589666, "Prob_GG": 0.46276912401972675, "Value_OV25": -0.34190356172727054, "Value_GG": -0.28270785776942353, "Segnale": "NO BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Burnley", "Away": "Aston Villa", "Campionato": "Championship", "Match_ID": "20260510_BURNLEY_ASTON_VILLA", "Odd1": 5.25, "OddX": 4.35, "Odd2": 1.57, "Odd_OV25": 1.68, "Odd_UN25": 2.05, "Odd_GG": 1.72, "Odd_NG": 2.0, "Campionato_AS": "Championship", "lam_h": 0.6732939587537341, "lam_a": 1.5812361220487876, "Prob1": 0.1571624358, "ProbX": 0.2501202893, "Prob2": 0.5927172749, "Fair1": 6.362843607696235, "FairX": 3.998076296803643, "Fair2": 1.687145022335842, "Value1": -0.17489721204999997, "ValueX": 0.08802325845500003, "Value2": -0.06943387840699988, "Value_Max": 0.08802325845500003, "Confidence": 0.6933851517253418, "Stake": 0.25, "Decision": "BET", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "4.3499999999999996", "Kelly": 0.026275599538805983, "RiskFlag": "OK", "Prob_OV25": 0.3918690156084532, "Prob_GG": 0.38917638841162266, "Value_OV25": -0.3416600537777986, "Value_GG": -0.3306166119320091, "Segnale": "NO BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "West Ham United", "Away": "Arsenal", "Campionato": "Premier League", "Match_ID": "20260510_WEST_HAM_UNI_ARSENAL", "Odd1": 5.25, "OddX": 4.1, "Odd2": 1.6, "Odd_OV25": 1.65, "Odd_UN25": 2.1, "Odd_GG": 1.68, "Odd_NG": 2.05, "Campionato_AS": "Premier League", "lam_h": 1.232001289839089, "lam_a": 1.3882456327312678, "Prob1": 0.3326702939, "ProbX": 0.2617719633, "Prob2": 0.4055577427, "Fair1": 3.005979248332278, "FairX": 3.820118806435983, "Fair2": 2.465740127022361, "Value1": 0.7465190429750002, "ValueX": 0.07326504953000001, "Value2": -0.35110761167999993, "Value_Max": 0.7465190429750002, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "5.25", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.4866413484924341, "Prob_GG": 0.5315640301920534, "Value_OV25": -0.19704177498748365, "Value_GG": -0.10697242927735018, "Segnale": "NO BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Hellas Verona", "Away": "Como", "Campionato": "Serie A", "Match_ID": "20260510_HELLAS_VERON_COMO", "Odd1": 7.25, "OddX": 4.85, "Odd2": 1.4, "Odd_OV25": 1.8, "Odd_UN25": 1.9, "Odd_GG": 2.05, "Odd_NG": 1.68, "Campionato_AS": "Serie A", "lam_h": 1.1510334640217936, "lam_a": 1.763274700514876, "Prob1": 0.2483572068, "ProbX": 0.2345202956, "Prob2": 0.5171224976, "Fair1": 4.026458554936526, "FairX": 4.264023279697759, "Fair2": 1.9337777889012115, "Value1": 0.8005897493, "ValueX": 0.13742343365999998, "Value2": -0.27602850336000007, "Value_Max": 0.8005897493, "Confidence": 1.0, "Decision": "WATCH", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "7.25", "Kelly": 0.1, "RiskFlag": "RISK", "Prob_OV25": 0.5573399532911356, "Prob_GG": 0.5664494486871969, "Value_OV25": 0.0032119159240440176, "Value_GG": 0.16122136980875368, "Segnale": "NO BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Cremonese", "Away": "Pisa", "Campionato": "Serie B", "Match_ID": "20260510_CREMONESE_PISA", "Odd1": 1.7, "OddX": 3.9, "Odd2": 4.6, "Odd_OV25": 2.1, "Odd_UN25": 1.65, "Odd_GG": 2.0, "Odd_NG": 1.72, "Campionato_AS": "Serie B", "lam_h": 2.6584304117480984, "lam_a": 1.3359627691461742, "Prob1": 0.6560888848, "ProbX": 0.1707398816, "Prob2": 0.1731712335, "Fair1": 1.5241837244428196, "FairX": 5.8568624426175075, "Fair2": 5.774631154313514, "Value1": 0.11535110415999994, "ValueX": -0.33411446176000004, "Value2": -0.20341232590000013, "Value_Max": 0.11535110415999994, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "OV2.5", "TipoScommessa": "1", "OddsBet": "1.7", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.7610740025604734, "Prob_GG": 0.6854555851224601, "Value_OV25": 0.5982554053769944, "Value_GG": 0.37091117024492015, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Fiorentina", "Away": "Genoa", "Campionato": "Serie A", "Match_ID": "20260510_FIORENTINA_GENOA", "Odd1": 2.1, "OddX": 3.3, "Odd2": 3.6, "Odd_OV25": 2.0, "Odd_UN25": 1.72, "Odd_GG": 1.83, "Odd_NG": 1.87, "Campionato_AS": "Serie A", "lam_h": 0.9838813040365721, "lam_a": 1.005626111926583, "Prob1": 0.3395603927, "ProbX": 0.3094654075, "Prob2": 0.3509741998, "Fair1": 2.9449842251875804, "FairX": 3.2313789385328957, "Fair2": 2.8492122799050255, "Value1": -0.28692317533, "ValueX": 0.021235844749999844, "Value2": 0.26350711928000004, "Value_Max": 0.26350711928000004, "Confidence": 0.76740391848, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "3.6", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.3204835762762285, "Prob_GG": 0.3970900287357527, "Value_OV25": -0.35903284744754305, "Value_GG": -0.27332524741357256, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Parma", "Away": "Roma", "Campionato": "Serie A", "Match_ID": "20260510_PARMA_ROMA", "Odd1": 6.0, "OddX": 4.25, "Odd2": 1.52, "Odd_OV25": 1.95, "Odd_UN25": 1.75, "Odd_GG": 1.95, "Odd_NG": 1.75, "Campionato_AS": "Serie A", "lam_h": 1.2043757291265456, "lam_a": 1.8923850206375827, "Prob1": 0.2414622325, "ProbX": 0.2240808848, "Prob2": 0.5344568827, "Fair1": 4.1414344166638974, "FairX": 4.462674274481444, "Fair2": 1.871058325506339, "Value1": 0.44877339500000013, "ValueX": -0.04765623959999998, "Value2": -0.18762553829599993, "Value_Max": 0.44877339500000013, "Confidence": 1.0, "Decision": "WATCH", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "6", "Kelly": 0.08975467900000003, "RiskFlag": "RISK", "Prob_OV25": 0.598135277120844, "Prob_GG": 0.5946042889386564, "Value_OV25": 0.16636379038564586, "Value_GG": 0.1594783634303798, "Segnale": "NO BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Milan", "Away": "Atalanta", "Campionato": "Serie A", "Match_ID": "20260510_MILAN_ATALANTA", "Odd1": 2.1, "OddX": 3.25, "Odd2": 3.6, "Odd_OV25": 1.75, "Odd_UN25": 1.95, "Odd_GG": 1.62, "Odd_NG": 2.15, "Campionato_AS": "Serie A", "lam_h": 0.8670462255873327, "lam_a": 1.5605899407171624, "Prob1": 0.2087964195, "ProbX": 0.2546571886, "Prob2": 0.5365463919, "Fair1": 4.7893541584414, "FairX": 3.9268477182897796, "Fair2": 1.8637717354856003, "Value1": -0.56152751905, "ValueX": -0.1723641370500001, "Value2": 0.93156701084, "Value_Max": 0.93156701084, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "3.6", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.4374947716295574, "Prob_GG": 0.45804217618837656, "Value_OV25": -0.23438414964827448, "Value_GG": -0.25797167457482995, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Avs Futebol Sad", "Away": "FC Porto", "Campionato": "Primeira Liga", "Match_ID": "20260510_AVS_FUTEBOL_FC_PORTO", "Odd1": 9.0, "OddX": 6.25, "Odd2": 1.2, "Odd_OV25": 1.5, "Odd_UN25": 2.35, "Odd_GG": 1.95, "Odd_NG": 1.68, "Campionato_AS": "Primeira Liga", "lam_h": 0.3570552088393253, "lam_a": 2.5189805058081447, "Prob1": 0.0360173748, "ProbX": 0.1196576434, "Prob2": 0.8443249818, "Fair1": 27.76437776358981, "FairX": 8.357176120017085, "Fair2": 1.1843780790047447, "Value1": -0.6758436268, "ValueX": -0.25213972875, "Value2": 0.013189978160000004, "Value_Max": 0.013189978160000004, "Confidence": 0.8700938112116754, "Decision": "WATCH", "Mercato": "NG", "TipoScommessa": "2", "OddsBet": "1.2", "Kelly": 0.06594989080000004, "RiskFlag": "RISK", "Prob_OV25": 0.5484715792716662, "Prob_GG": 0.2760821968774775, "Value_OV25": -0.1772926310925007, "Value_GG": -0.46163971608891885, "Segnale": "NO BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "FC Alverca SAD", "Away": "Estoril Praia", "Campionato": "Primeira Liga", "Match_ID": "20260510_FC_ALVERCA_S_ESTORIL_PRAI", "Odd1": 2.4, "OddX": 3.35, "Odd2": 2.75, "Odd_OV25": 1.7, "Odd_UN25": 2.05, "Odd_GG": 1.57, "Odd_NG": 2.25, "Campionato_AS": "Primeira Liga", "lam_h": 1.2933808766651824, "lam_a": 0.6063136590057625, "Prob1": 0.5334243232, "ProbX": 0.2920483995, "Prob2": 0.1745272773, "Fair1": 1.8746801683152043, "FairX": 3.424089985468316, "Fair2": 5.729763366909523, "Value1": 0.2802183756800001, "ValueX": -0.021637861675000036, "Value2": -0.520049987425, "Value_Max": 0.2802183756800001, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "NG", "TipoScommessa": "1", "OddsBet": "2.4", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.29619718060147693, "Prob_GG": 0.3299150740851969, "Value_OV25": -0.49646479297748924, "Value_GG": -0.4820333336862409, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "RCD Maiorca", "Away": "Villarreal", "Campionato": "La Liga", "Match_ID": "20260510_RCD_MAIORCA_VILLARREAL", "Odd1": 2.35, "OddX": 3.45, "Odd2": 2.9, "Odd_OV25": 1.72, "Odd_UN25": 2.0, "Odd_GG": 1.57, "Odd_NG": 2.25, "Campionato_AS": "La Liga", "lam_h": 1.5270711059736481, "lam_a": 1.1063910400717034, "Prob1": 0.4696997811, "ProbX": 0.255158799, "Prob2": 0.2751414199, "Fair1": 2.129019514673987, "FairX": 3.9191280250539196, "Fair2": 3.6344945823258796, "Value1": 0.10379448558500015, "ValueX": -0.11970214344999996, "Value2": -0.20208988229000002, "Value_Max": 0.10379448558500015, "Confidence": 0.5954688836100003, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "2.35", "Kelly": 0.07688480413703698, "RiskFlag": "OK", "Prob_OV25": 0.48993810899603973, "Prob_GG": 0.523908065618063, "Value_OV25": -0.15730645252681164, "Value_GG": -0.17746433697964104, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "FC Andorra", "Away": "UD Las Palmas", "Campionato": "La Liga", "Match_ID": "20260510_FC_ANDORRA_UD_LAS_PALMA", "Odd1": 2.5, "OddX": 3.25, "Odd2": 2.55, "Odd_OV25": 1.8, "Odd_UN25": 1.85, "Odd_GG": 1.63, "Odd_NG": 2.05, "Campionato_AS": "La Liga", "lam_h": 1.7766503694267297, "lam_a": 0.5760825440926263, "Prob1": 0.6651817108, "ProbX": 0.2203823052, "Prob2": 0.114435984, "Fair1": 1.5033486095059967, "FairX": 4.5375693801391455, "Fair2": 8.738510082632748, "Value1": 0.6629542769999999, "ValueX": -0.2837575081, "Value2": -0.7081882408, "Value_Max": 0.6629542769999999, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "2.5", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.41789474089170786, "Prob_GG": 0.3638088669103458, "Value_OV25": -0.24778946639492583, "Value_GG": -0.4069915469361364, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Leganes", "Away": "Racing Santander", "Campionato": "La Liga", "Match_ID": "20260510_LEGANES_RACING_SANTA", "Odd1": 2.75, "OddX": 3.55, "Odd2": 2.2, "Odd_OV25": 1.53, "Odd_UN25": 2.25, "Odd_GG": 1.45, "Odd_NG": 2.4, "Campionato_AS": "La Liga", "Value_Max": 0.0, "Confidence": 0.2, "Decision": "—", "Mercato": "NG", "TipoScommessa": "2", "OddsBet": "2.2000000000000002", "RiskFlag": "RISK", "Segnale": "NO BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Athletic Bilbao", "Away": "Valencia", "Campionato": "La Liga", "Match_ID": "20260510_ATHLETIC_BIL_VALENCIA", "Odd1": 1.72, "OddX": 3.7, "Odd2": 4.75, "Odd_OV25": 1.9, "Odd_UN25": 1.8, "Odd_GG": 1.8, "Odd_NG": 1.9, "Campionato_AS": "La Liga", "lam_h": 1.6533277446006647, "lam_a": 0.655370764384077, "Prob1": 0.6152460668, "ProbX": 0.2400181473, "Prob2": 0.1447357859, "Fair1": 1.6253659372438916, "FairX": 4.166351633195862, "Fair2": 6.9091413279844565, "Value1": 0.05822323489600012, "ValueX": -0.11193285498999983, "Value2": -0.312505016975, "Value_Max": 0.05822323489600012, "Confidence": 0.7689277028618183, "Stake": 0.25, "Decision": "BET", "Mercato": "NG", "TipoScommessa": "1", "OddsBet": "1.72", "Kelly": 0.0808656040222224, "RiskFlag": "OK", "Prob_OV25": 0.4062665659995517, "Prob_GG": 0.38872913785741625, "Value_OV25": -0.22809352460085175, "Value_GG": -0.3002875518566508, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Real Oviedo", "Away": "Getafe", "Campionato": "La Liga", "Match_ID": "20260510_REAL_OVIEDO_GETAFE", "Odd1": 2.9, "OddX": 3.15, "Odd2": 2.5, "Odd_OV25": 2.4, "Odd_UN25": 1.5, "Odd_GG": 2.0, "Odd_NG": 1.72, "Campionato_AS": "La Liga", "lam_h": 1.4795638567169374, "lam_a": 0.6694648568041752, "Prob1": 0.5676281334, "ProbX": 0.2640384072, "Prob2": 0.1683334594, "Fair1": 1.7617167669441665, "FairX": 3.7873278005443143, "Fair2": 5.940589610433682, "Value1": 0.6461215868599999, "ValueX": -0.16827901732000006, "Value2": -0.5791663515000001, "Value_Max": 0.6461215868599999, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "2.9", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.3635893908767649, "Prob_GG": 0.3768778711033533, "Value_OV25": -0.12738546189576438, "Value_GG": -0.2462442577932934, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Cordoba CF", "Away": "Granada", "Campionato": "La Liga", "Match_ID": "20260510_CORDOBA_CF_GRANADA", "Odd1": 1.72, "OddX": 3.6, "Odd2": 4.1, "Odd_OV25": 1.73, "Odd_UN25": 1.95, "Odd_GG": 1.68, "Odd_NG": 1.95, "Campionato_AS": "La Liga", "lam_h": 2.358163978481265, "lam_a": 1.5840877469283592, "Prob1": 0.549753756, "ProbX": 0.1953385941, "Prob2": 0.25490765, "Fair1": 1.8189962125515702, "FairX": 5.119316050201879, "Fair2": 3.9229893649719814, "Value1": -0.05442353968000002, "ValueX": -0.29678106124000003, "Value2": 0.04512136499999975, "Value_Max": 0.04512136499999975, "Confidence": 0.8084239037998462, "Decision": "WATCH", "Mercato": "OV2.5", "TipoScommessa": "2", "OddsBet": "4.0999999999999996", "Kelly": 0.014555279032257985, "RiskFlag": "OK", "Prob_OV25": 0.7533123826011117, "Prob_GG": 0.719675889297577, "Value_OV25": 0.3032304218999231, "Value_GG": 0.20905549401992918, "Segnale": "NO BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "CD Mirandes", "Away": "Eibar", "Campionato": "La Liga", "Match_ID": "20260510_CD_MIRANDES_EIBAR", "Odd1": 2.65, "OddX": 3.25, "Odd2": 2.45, "Odd_OV25": 1.9, "Odd_UN25": 1.75, "Odd_GG": 1.7, "Odd_NG": 1.93, "Campionato_AS": "La Liga", "lam_h": 1.477238724273789, "lam_a": 0.7630516654266101, "Prob1": 0.5418658826, "ProbX": 0.2647469925, "Prob2": 0.1933871249, "Fair1": 1.8454751112983248, "FairX": 3.7771911611045024, "Fair2": 5.170975061122076, "Value1": 0.43594458889, "ValueX": -0.13957227437499997, "Value2": -0.526201543995, "Value_Max": 0.43594458889, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "2.65", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.38806890699775587, "Prob_GG": 0.4119190260400332, "Value_OV25": -0.26266907670426387, "Value_GG": -0.29973765573194344, "Segnale": "BET"}, {"Date": "DOMENICA 10 MAGGIO 202", "Home": "Barcellona", "Away": "Real Madrid", "Campionato": "La Liga", "Match_ID": "20260510_BARCELLONA_REAL_MADRID", "Odd1": 1.63, "OddX": 5.0, "Odd2": 4.2, "Odd_OV25": 1.23, "Odd_UN25": 3.75, "Odd_GG": 1.27, "Odd_NG": 3.4, "Campionato_AS": "La Liga", "lam_h": 0.9786983124055634, "lam_a": 1.6858370151011102, "Prob1": 0.2187138758, "ProbX": 0.2415534239, "Prob2": 0.5397327004, "Fair1": 4.572183618173529, "FairX": 4.139870939747007, "Fair2": 1.852768971120135, "Value1": -0.643496382446, "ValueX": 0.20776711949999993, "Value2": 1.2668773416799999, "Value_Max": 1.2668773416799999, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "4.2", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.49764838212684237, "Prob_GG": 0.5085424700923634, "Value_OV25": -0.38789248998398396, "Value_GG": -0.3541510629826985, "Segnale": "BET"}, {"Date": "LUNEDÌ 11 MAGGIO 2026", "Home": "Tottenham", "Away": "Leeds United", "Campionato": "Premier League", "Match_ID": "20260511_TOTTENHAM_LEEDS_UNITED", "Odd1": 1.82, "OddX": 4.0, "Odd2": 3.85, "Odd_OV25": 1.68, "Odd_UN25": 2.05, "Odd_GG": 1.63, "Odd_NG": 2.15, "Campionato_AS": "Premier League", "lam_h": 2.3797784450711803, "lam_a": 1.2352308603397928, "Prob1": 0.6276205004, "ProbX": 0.187122504, "Prob2": 0.1852569956, "Fair1": 1.5933195288596729, "FairX": 5.344092659213239, "Fair2": 5.397906819989474, "Value1": 0.14226931072799998, "ValueX": -0.251509984, "Value2": -0.2867605669400001, "Value_Max": 0.14226931072799998, "Confidence": 0.8027182791214933, "Stake": 0.25, "Decision": "BET", "Mercato": "OV2.5", "TipoScommessa": "1", "OddsBet": "1.82", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.6999018092147302, "Prob_GG": 0.6435779620212944, "Value_OV25": 0.17583503948074664, "Value_GG": 0.04903207809470955, "Segnale": "BET"}, {"Date": "LUNEDÌ 11 MAGGIO 2026", "Home": "Napoli", "Away": "Bologna", "Campionato": "Serie A", "Match_ID": "20260511_NAPOLI_BOLOGNA", "Odd1": 1.53, "OddX": 4.15, "Odd2": 6.0, "Odd_OV25": 1.85, "Odd_UN25": 1.85, "Odd_GG": 1.9, "Odd_NG": 1.8, "Campionato_AS": "Serie A", "lam_h": 2.3971179234118805, "lam_a": 0.6702176315071918, "Prob1": 0.7574010821, "ProbX": 0.1573012513, "Prob2": 0.0852976667, "Fair1": 1.3203044247406681, "FairX": 6.357228513667901, "Fair2": 11.723650114804371, "Value1": 0.15882365561300005, "ValueX": -0.347199807105, "Value2": -0.4882139998, "Value_Max": 0.15882365561300005, "Confidence": 0.820607744066, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "1.53", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.5917253909436476, "Prob_GG": 0.44396799389573655, "Value_OV25": 0.09469197324574807, "Value_GG": -0.15646081159810066, "Segnale": "BET"}, {"Date": "LUNEDÌ 11 MAGGIO 2026", "Home": "Gil Vicente", "Away": "Arouca", "Campionato": "Primeira Liga", "Match_ID": "20260511_GIL_VICENTE_AROUCA", "Odd1": 1.67, "OddX": 3.8, "Odd2": 4.6, "Odd_OV25": 1.75, "Odd_UN25": 1.95, "Odd_GG": 1.75, "Odd_NG": 1.95, "Campionato_AS": "Primeira Liga", "lam_h": 0.7349429520976387, "lam_a": 0.9186191371318059, "Prob1": 0.2761545051, "ProbX": 0.3440783577, "Prob2": 0.3797671372, "Fair1": 3.6211612757788756, "FairX": 2.9063147321573024, "Fair2": 2.6331925594535095, "Value1": -0.538821976483, "ValueX": 0.3074977592599999, "Value2": 0.7469288311199997, "Value_Max": 0.7469288311199997, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "4.5999999999999996", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.23057138414637546, "Prob_GG": 0.31276449078915325, "Value_OV25": -0.596500077743843, "Value_GG": -0.45266214111898184, "Segnale": "BET"}, {"Date": "LUNEDÌ 11 MAGGIO 2026", "Home": "Estrela Amadora", "Away": "Famalicao", "Campionato": "Primeira Liga", "Match_ID": "20260511_ESTRELA_AMAD_FAMALICAO", "Odd1": 3.5, "OddX": 3.45, "Odd2": 1.98, "Odd_OV25": 1.82, "Odd_UN25": 1.9, "Odd_GG": 1.7, "Odd_NG": 2.05, "Campionato_AS": "Primeira Liga", "lam_h": 1.338232233331439, "lam_a": 1.5724778598232327, "Prob1": 0.3252173522, "ProbX": 0.2453663785, "Prob2": 0.4294162693, "Fair1": 3.0748666798843707, "FairX": 4.075538002041302, "Fair2": 2.3287426944259004, "Value1": 0.13826073270000006, "ValueX": -0.15348599417499986, "Value2": -0.1497557867860001, "Value_Max": 0.13826073270000006, "Confidence": 0.5066084062800001, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "3.5", "Kelly": 0.055304293079999935, "RiskFlag": "OK", "Prob_OV25": 0.556510699063017, "Prob_GG": 0.584597787048966, "Value_OV25": 0.012849472294691022, "Value_GG": -0.006183762016757743, "Segnale": "NO BET"}, {"Date": "LUNEDÌ 11 MAGGIO 2026", "Home": "Santa Clara", "Away": "Nacional Madeira", "Campionato": "Primeira Liga", "Match_ID": "20260511_SANTA_CLARA_NACIONAL_MAD", "Odd1": 2.1, "OddX": 3.15, "Odd2": 3.45, "Odd_OV25": 2.0, "Odd_UN25": 1.7, "Odd_GG": 1.8, "Odd_NG": 1.9, "Campionato_AS": "Primeira Liga", "lam_h": 3.208453275955018, "lam_a": 0.4672784211493456, "Prob1": 0.8914434639, "ProbX": 0.080190108, "Prob2": 0.0283664281, "Fair1": 1.1217761310684506, "FairX": 12.470366045647426, "Fair2": 35.25294042925341, "Value1": 0.87203127419, "ValueX": -0.7474011598, "Value2": -0.902135823055, "Value_Max": 0.87203127419, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "1", "TipoScommessa": "1", "OddsBet": "2.1", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.710436977566278, "Prob_GG": 0.3582062040733143, "Value_OV25": 0.420873955132556, "Value_GG": -0.3552288326680342, "Segnale": "BET"}, {"Date": "LUNEDÌ 11 MAGGIO 2026", "Home": "CD Tondela", "Away": "Moreirense FC", "Campionato": "Primeira Liga", "Match_ID": "20260511_CD_TONDELA_MOREIRENSE_F", "Odd1": 1.9, "OddX": 3.55, "Odd2": 3.7, "Odd_OV25": 1.97, "Odd_UN25": 1.75, "Odd_GG": 1.85, "Odd_NG": 1.85, "Campionato_AS": "Primeira Liga", "lam_h": 1.084940442787452, "lam_a": 1.0854968947728367, "Prob1": 0.3530156397, "ProbX": 0.2936870015, "Prob2": 0.3532973588, "Fair1": 2.8327356851663024, "FairX": 3.4049855624951793, "Fair2": 2.8304768634460564, "Value1": -0.32927028457000007, "ValueX": 0.042588855324999786, "Value2": 0.3072002275600001, "Value_Max": 0.3072002275600001, "Confidence": 0.8557193986400001, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "3.7", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.369349029725343, "Prob_GG": 0.4384718567139977, "Value_OV25": -0.27238241144107433, "Value_GG": -0.18882706507910418, "Segnale": "BET"}, {"Date": "LUNEDÌ 11 MAGGIO 2026", "Home": "Rio Ave", "Away": "Sporting Lisbona", "Campionato": "Primeira Liga", "Match_ID": "20260511_RIO_AVE_SPORTING_LIS", "Odd1": 9.0, "OddX": 6.25, "Odd2": 1.25, "Odd_OV25": 1.35, "Odd_UN25": 2.9, "Odd_GG": 1.73, "Odd_NG": 2.0, "Campionato_AS": "Primeira Liga", "lam_h": 0.35906768711027737, "lam_a": 1.6082793511558722, "Prob1": 0.0784087885, "ProbX": 0.2330084074, "Prob2": 0.6885828042, "Fair1": 12.753672376917288, "FairX": 4.29169063536546, "Fair2": 1.45225816546756, "Value1": -0.29432090349999995, "ValueX": 0.4563025462500001, "Value2": -0.13927149475, "Value_Max": 0.4563025462500001, "Confidence": 1.0, "Decision": "WATCH", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "6.25", "Kelly": 0.08691477071428573, "RiskFlag": "RISK", "Prob_OV25": 0.3144861798628207, "Prob_GG": 0.24126839257189073, "Value_OV25": -0.5754436571851921, "Value_GG": -0.582605680850629, "Segnale": "NO BET"}, {"Date": "LUNEDÌ 11 MAGGIO 2026", "Home": "Vitoria Guimaraes", "Away": "Casa Pia Lisbona", "Campionato": "Primeira Liga", "Match_ID": "20260511_VITORIA_GUIM_CASA_PIA_LIS", "Odd1": 1.73, "OddX": 3.9, "Odd2": 4.1, "Odd_OV25": 1.85, "Odd_UN25": 1.85, "Odd_GG": 1.83, "Odd_NG": 1.88, "Campionato_AS": "Primeira Liga", "lam_h": 1.46675484810857, "lam_a": 0.7783472604195891, "Prob1": 0.5350549854, "ProbX": 0.2660526916, "Prob2": 0.198892323, "Fair1": 1.8689667927351679, "FairX": 3.7586539492840823, "Fair2": 5.027846147686655, "Value1": -0.07435487525800011, "ValueX": 0.03760549723999995, "Value2": -0.1845414757, "Value_Max": 0.03760549723999995, "Confidence": 0.4658125264231231, "Decision": "SKIP", "Mercato": "UN2.5", "TipoScommessa": "X", "OddsBet": "3.9", "Kelly": 0.012967412841379294, "RiskFlag": "OK", "Prob_OV25": 0.3893536622207776, "Prob_GG": 0.4160796210379736, "Value_OV25": -0.27969572489156136, "Value_GG": -0.2385742935005083, "Segnale": "NO BET"}, {"Date": "LUNEDÌ 11 MAGGIO 2026", "Home": "Benfica", "Away": "Sporting Braga", "Campionato": "Primeira Liga", "Match_ID": "20260511_BENFICA_SPORTING_BRA", "Odd1": 1.4, "OddX": 4.6, "Odd2": 7.0, "Odd_OV25": 1.63, "Odd_UN25": 2.15, "Odd_GG": 1.85, "Odd_NG": 1.85, "Campionato_AS": "Primeira Liga", "lam_h": 1.342381007063888, "lam_a": 0.9590054041695196, "Prob1": 0.4555766552, "ProbX": 0.2769273058, "Prob2": 0.2674960389, "Fair1": 2.1950202860175, "FairX": 3.6110559668760547, "Fair2": 3.7383731142794128, "Value1": -0.36219268271999994, "ValueX": 0.27386560668000004, "Value2": 0.8724722723, "Value_Max": 0.8724722723, "Confidence": 1.0, "Decision": "WATCH", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "7", "Kelly": 0.1, "RiskFlag": "RISK", "Prob_OV25": 0.4043287957488595, "Prob_GG": 0.45562308712594823, "Value_OV25": -0.3409440629293591, "Value_GG": -0.1570972888169957, "Segnale": "NO BET"}, {"Date": "LUNEDÌ 11 MAGGIO 2026", "Home": "Huesca", "Away": "Real Sociedad B", "Campionato": "La Liga", "Match_ID": "20260511_HUESCA_REAL_SOCIEDA", "Odd1": 1.88, "OddX": 3.35, "Odd2": 3.75, "Odd_OV25": 1.97, "Odd_UN25": 1.7, "Odd_GG": 1.82, "Odd_NG": 1.8, "Campionato_AS": "La Liga", "Value_Max": 0.0, "Confidence": 0.1, "Decision": "—", "Mercato": "NG", "TipoScommessa": "2", "OddsBet": "3.75", "RiskFlag": "RISK", "Segnale": "NO BET"}, {"Date": "LUNEDÌ 11 MAGGIO 2026", "Home": "Rayo Vallecano", "Away": "Girona", "Campionato": "La Liga", "Match_ID": "20260511_RAYO_VALLECA_GIRONA", "Odd1": 2.35, "OddX": 3.4, "Odd2": 2.9, "Odd_OV25": 1.75, "Odd_UN25": 1.95, "Odd_GG": 1.63, "Odd_NG": 2.15, "Campionato_AS": "La Liga", "lam_h": 1.5626418618530515, "lam_a": 2.06414516506695, "Prob1": 0.2936249976, "ProbX": 0.2121011336, "Prob2": 0.4942738688, "Fair1": 3.405704582967019, "FairX": 4.714731991418268, "Fair2": 2.02316987225686, "Value1": -0.30998125564, "ValueX": -0.27885614576000006, "Value2": 0.43339421952, "Value_Max": 0.43339421952, "Confidence": 1.0, "Stake": 0.25, "Decision": "BET", "Mercato": "2", "TipoScommessa": "2", "OddsBet": "2.9", "Kelly": 0.1, "RiskFlag": "OK", "Prob_OV25": 0.7019677978783553, "Prob_GG": 0.6900931181858782, "Value_OV25": 0.22844364628712177, "Value_GG": 0.12485178264298114, "Segnale": "BET"}];
+var DATA_TIMESTAMP = "08/05/2026 11:46";
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// DATI — In produzione questi arrivano da VALUE_SCANNER Excel
+// tramite VBA (macro legge foglio e scrive JSON) o da Python
+// Per la demo usiamo dati realistici basati sul tuo sistema
+// ══════════════════════════════════════════════════════════════════
+
+let DEMO_DATA = []
+let currentFilter = '';
+let valueOnly = false;
+let betOnly = false;
+let selectedId = null;
+
+function computeOverUnder(lh, la) {
+  const tot = lh + la;
+  return {
+    ov05: 1 - Math.exp(-tot),
+    ov15: 1 - Math.exp(-tot) * (1 + tot),
+    ov25: 1 - Math.exp(-tot) * (1 + tot + tot*tot/2),
+    ov35: 1 - Math.exp(-tot) * (1 + tot + tot*tot/2 + Math.pow(tot,3)/6),
+    gg: (1-Math.exp(-lh)) * (1-Math.exp(-la)),
+  };
+}
+
+function pct(v) { return (v != null && !isNaN(v)) ? (v*100).toFixed(1)+'%' : '—'; }
+function fair(p) { return (p != null && !isNaN(p) && p > 0.01) ? (1/p).toFixed(2) : '—'; }
+
+function valueChip(v) {
+  if (v === null || v === undefined) return '<span class="value-chip none">—</span>';
+  const cls = v > 0 ? 'pos' : 'neg';
+  const sign = v > 0 ? '+' : '';
+  return `<span class="value-chip ${cls}">${sign}${(v*100).toFixed(1)}%</span>`;
+}
+
+function renderCard(m, idx) {
+  const isBet   = m.decision === 'BET';
+  const isWatch = m.decision === 'WATCH';
+  // hasValue: considera anche quando value è nullo ma odds ci sono
+  const hasOdds = m.b365h > 1 || m.b365d > 1 || m.b365a > 1;
+  const hasValue = (m.value1||0) > 0 || (m.valuex||0) > 0 || (m.value2||0) > 0;
+
+  const bestValue = Math.max(m.value1||0, m.valuex||0, m.value2||0);
+  const bestMkt = bestValue === m.value1 ? '1' : bestValue === m.valuex ? 'X' : '2';
+
+  const decBadge = isBet
+    ? `<span style="background:rgba(0,212,170,0.2);color:var(--accent);padding:3px 8px;border-radius:4px;font-size:10px;font-family:'Syne',sans-serif;font-weight:700;">⚡ BET ${bestMkt}</span>`
+    : isWatch
+    ? `<span style="background:rgba(247,183,49,0.15);color:var(--yellow);padding:3px 8px;border-radius:4px;font-size:10px;font-family:'Syne',sans-serif;font-weight:700;">👁 WATCH</span>`
+    : '';
+
+  return `
+  <div class="match-card ${hasValue?'has-value':''} ${selectedId===m.id?'selected':''}"
+       data-id="${m.id}"
+       onclick="selectMatch('${m.id}')"
+       style="animation-delay:${idx*0.04}s">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <div>
+        <span class="league-badge" style="${
+        m.league==='Serie A'?'background:#1a3a5c;color:#4a9eff':
+        m.league==='Serie B'?'background:#1a3a2a;color:#00d4aa':
+        m.league==='Serie C'?'background:#2a2a1a;color:#f7b731':
+        m.league==='Premier League'?'background:#1a0a2a;color:#a855f7':
+        m.league==='La Liga'?'background:#3a1a1a;color:#e74c5e':
+        m.league==='Bundesliga'?'background:#2a1a0a;color:#f97316':
+        m.league==='Jupiler Pro'?'background:#0a1a2a;color:#4a9eff':
+        ''}">${m.league}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-left:8px;">${m.date}</span>
+      </div>
+      ${decBadge}
+    </div>
+    <div class="match-teams">${m.home} <span class="vs">vs</span> ${m.away}</div>
+    <div class="odds-row">
+      <div class="odd-box ${(m.value1||0)>0?'bet':(m.b365h>0&&m.b365h<1.5?'low':'')}">
+        <span class="odd-label">1 Casa</span>
+        <span class="odd-value">${m.b365h>0?m.b365h.toFixed(2):'—'}</span>
+        ${(m.value1!=null)?`<span class="value-badge ${m.value1>0?'positive':'negative'}">${m.value1>0?'+':''}${(m.value1*100).toFixed(1)}%</span>`:''}
+      </div>
+      <div class="odd-box ${(m.valuex||0)>0?'bet':''}">
+        <span class="odd-label">X Pareggio</span>
+        <span class="odd-value">${m.b365d>0?m.b365d.toFixed(2):'—'}</span>
+        ${(m.valuex!=null)?`<span class="value-badge ${m.valuex>0?'positive':'negative'}">${m.valuex>0?'+':''}${(m.valuex*100).toFixed(1)}%</span>`:''}
+      </div>
+      <div class="odd-box ${(m.value2||0)>0?'bet':''}">
+        <span class="odd-label">2 Ospite</span>
+        <span class="odd-value">${m.b365a>0?m.b365a.toFixed(2):'—'}</span>
+        ${(m.value2!=null)?`<span class="value-badge ${m.value2>0?'positive':'negative'}">${m.value2>0?'+':''}${(m.value2*100).toFixed(1)}%</span>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderList() {
+  const list = document.getElementById('match-list');
+  let filtered = DEMO_DATA.filter(m => {
+    if (!m.home || !m.away) return false;  // salta righe vuote
+    if (currentFilter && m.league !== currentFilter) return false;
+    if (valueOnly && (m.value1||0) <= 0 && (m.valuex||0) <= 0 && (m.value2||0) <= 0) return false;
+    if (betOnly && m.decision !== 'BET') return false;
+    return true;
+  });
+
+  // Raggruppa per data
+  const byDate = {};
+  filtered.forEach(m => { (byDate[m.date] = byDate[m.date]||[]).push(m); });
+
+  const bets  = filtered.filter(m=>m.decision==='BET').length;
+  const watch = filtered.filter(m=>m.decision==='WATCH').length;
+  document.getElementById('total-matches').textContent = filtered.length;
+  document.getElementById('total-bets').textContent    = bets;
+  document.getElementById('total-watch').textContent   = watch;
+
+  let html = '';
+  let cardIdx = 0;
+  for (const date of Object.keys(byDate).sort()) {
+    const todayISO = new Date().toISOString().slice(0,10);
+    let label = date;
+    if (date === todayISO) {
+      label = 'Oggi';
+    } else if (date) {
+      try {
+        const d = new Date(date + 'T12:00:00');
+        label = d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
+        label = label.charAt(0).toUpperCase() + label.slice(1);
+      } catch(e) { label = date; }
+    }
+    html += `<div class="day-header">${label} — ${byDate[date].length} partite</div>`;
+    html += byDate[date].map(m => renderCard(m, cardIdx++)).join('');
+  }
+
+  if (!html) html = `<div style="padding:40px;text-align:center;color:var(--muted);">
+    <div style="font-size:32px;margin-bottom:12px;">🔍</div>
+    <p>Nessuna partita con questi filtri</p>
+  </div>`;
+
+  list.innerHTML = html;
+}
+
+function selectMatch(id) {
+  selectedId = id;
+
+  // Trova la partita
+  const m = DEMO_DATA.find(x => x.id === id);
+  if (!m) { console.warn('Partita non trovata:', id); return; }
+
+  // Evidenzia la card selezionata
+  document.querySelectorAll('.match-card').forEach(c => c.classList.remove('selected'));
+  const card = document.querySelector('[data-id="' + id + '"]');
+  if (card) card.classList.add('selected');
+
+  // Calcola Over/Under da lambda (se disponibile)
+  const hasLambda = (m.lam_h != null && m.lam_a != null && !isNaN(m.lam_h));
+  const ou = hasLambda ? computeOverUnder(m.lam_h, m.lam_a) : null;
+
+  const conf = parseFloat(m.confidence) || 0;
+  const decClass = m.decision === 'BET' ? 'bet' : m.decision === 'WATCH' ? 'watch' : 'skip';
+  const decLabel = m.decision === 'BET' ? '⚡ BET' : m.decision === 'WATCH' ? '👁 WATCH' : '⛔ SKIP';
+
+  // Helper locali null-safe
+  const _pct  = v => (v != null && !isNaN(v)) ? (v * 100).toFixed(1) + '%' : '—';
+  const _fair = p => (p != null && !isNaN(p) && p > 0.01) ? (1/p).toFixed(2) : '—';
+  const _val  = v => {
+    if (v == null) return '';
+    const cls = v > 0 ? 'positive' : 'negative';
+    const sign = v > 0 ? '+' : '';
+    return `<span class="value-badge ${cls}">${sign}${(v*100).toFixed(1)}%</span>`;
+  };
+  const _odd  = v => (v && v > 1) ? v.toFixed(2) : '—';
+
+  // Costruisci HTML pannello
+  const panelHTML = `
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);
+                display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;
+                    color:var(--muted);margin-bottom:4px;">${m.league} · ${m.date}</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;
+                    font-size:16px;line-height:1.3;">${m.home}<br>
+          <span style="color:var(--muted);font-size:12px;font-weight:400;">vs</span>
+          ${m.away}
+        </div>
+      </div>
+      <div class="decision-badge ${decClass}" style="padding:8px 14px;">
+        ${decLabel}
+        <span class="sub">conf. ${(conf*100).toFixed(0)}%</span>
+      </div>
+    </div>
+
+    <div style="padding:16px 20px;">
+
+      <!-- QUOTE BOOKMAKER -->
+      <div class="section-title">📋 Quote bookmaker</div>
+      <div class="odds-row" style="margin-bottom:16px;">
+        <div class="odd-box ${(m.value1||0)>0?'bet':''}">
+          <span class="odd-label">1 Casa</span>
+          <span class="odd-value">${_odd(m.b365h)}</span>
+          ${_val(m.value1)}
+        </div>
+        <div class="odd-box ${(m.valuex||0)>0?'bet':''}">
+          <span class="odd-label">X Pareggio</span>
+          <span class="odd-value">${_odd(m.b365d)}</span>
+          ${_val(m.valuex)}
+        </div>
+        <div class="odd-box ${(m.value2||0)>0?'bet':''}">
+          <span class="odd-label">2 Ospite</span>
+          <span class="odd-value">${_odd(m.b365a)}</span>
+          ${_val(m.value2)}
+        </div>
+      </div>
+
+      <!-- LAMBDA -->
+      ${hasLambda ? `
+      <div class="section-title">⚽ Gol attesi (λ)</div>
+      <div class="lambda-grid">
+        <div class="lambda-box">
+          <div class="lambda-team">${m.home}</div>
+          <div class="lambda-value">${m.lam_h.toFixed(2)}</div>
+          <div class="lambda-label">λ Casa</div>
+        </div>
+        <div class="lambda-box">
+          <div class="lambda-team">${m.away}</div>
+          <div class="lambda-value">${m.lam_a.toFixed(2)}</div>
+          <div class="lambda-label">λ Ospite</div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--muted);
+                  font-family:'DM Mono',monospace;margin:4px 0 12px;">
+        Media gol attesi: <b style="color:var(--text)">${(m.lam_h+m.lam_a).toFixed(2)}</b>
+      </div>` : `
+      <div style="padding:8px 12px;background:var(--border);border-radius:6px;
+                  font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px;">
+        λ non disponibile — lancia engine.py per calcolare le probabilità
+      </div>`}
+
+      <!-- CONFIDENCE -->
+      ${conf > 0 ? `
+      <div class="section-title">📊 Confidence</div>
+      <div class="conf-row">
+        <span class="conf-label">Confidence</span>
+        <div class="conf-bar-wrap">
+          <div class="conf-bar" style="width:${Math.min(conf*100,100).toFixed(0)}%"></div>
+        </div>
+        <span class="conf-value">${(conf*100).toFixed(0)}%</span>
+      </div>
+      ${(m.kelly > 0) ? `
+      <div class="conf-row">
+        <span class="conf-label">Kelly stake</span>
+        <div class="conf-bar-wrap">
+          <div class="conf-bar" style="width:${Math.min(m.kelly*500,100)}%;
+               background:var(--yellow);"></div>
+        </div>
+        <span class="conf-value" style="color:var(--yellow);">
+          ${(m.kelly*100).toFixed(1)}%
+        </span>
+      </div>` : ''}` : ''}
+
+      <!-- PROBABILITA 1X2 -->
+      ${(m.prob1 != null) ? `
+      <div class="section-title">🎯 Probabilità 1X2</div>
+      <div class="prob-row">
+        <span class="prob-label">1 — Casa</span>
+        <div class="prob-bar-wrap">
+          <div class="prob-bar" style="width:${_pct(m.prob1)}"></div>
+        </div>
+        <span class="prob-pct">${_pct(m.prob1)}</span>
+        <span class="fair-odds">Fair ${_fair(m.prob1)}</span>
+        ${_val(m.value1)}
+      </div>
+      <div class="prob-row">
+        <span class="prob-label">X — Pareggio</span>
+        <div class="prob-bar-wrap">
+          <div class="prob-bar amber" style="width:${_pct(m.probx)}"></div>
+        </div>
+        <span class="prob-pct">${_pct(m.probx)}</span>
+        <span class="fair-odds">Fair ${_fair(m.probx)}</span>
+        ${_val(m.valuex)}
+      </div>
+      <div class="prob-row">
+        <span class="prob-label">2 — Ospite</span>
+        <div class="prob-bar-wrap">
+          <div class="prob-bar red" style="width:${_pct(m.prob2)}"></div>
+        </div>
+        <span class="prob-pct">${_pct(m.prob2)}</span>
+        <span class="fair-odds">Fair ${_fair(m.prob2)}</span>
+        ${_val(m.value2)}
+      </div>` : ''}
+
+      <!-- OVER/UNDER -->
+      ${ou ? `
+      <div class="section-title">📈 Over / Under</div>
+      <div class="ou-grid">
+        <div class="ou-box">
+          <div class="ou-label">Over 0.5</div>
+          <div class="ou-pct" style="color:var(--accent)">${_pct(ou.ov05)}</div>
+          <div class="ou-fair">Fair ${_fair(ou.ov05)}</div>
+        </div>
+        <div class="ou-box">
+          <div class="ou-label">Over 1.5</div>
+          <div class="ou-pct" style="color:var(--accent)">${_pct(ou.ov15)}</div>
+          <div class="ou-fair">Fair ${_fair(ou.ov15)}</div>
+        </div>
+        <div class="ou-box">
+          <div class="ou-label">Over 2.5</div>
+          <div class="ou-pct" style="color:var(--blue)">${_pct(ou.ov25)}</div>
+          <div class="ou-fair">Fair ${_fair(ou.ov25)}</div>
+        </div>
+        <div class="ou-box">
+          <div class="ou-label">Over 3.5</div>
+          <div class="ou-pct" style="color:var(--yellow)">${_pct(ou.ov35)}</div>
+          <div class="ou-fair">Fair ${_fair(ou.ov35)}</div>
+        </div>
+        <div class="ou-box">
+          <div class="ou-label">GG</div>
+          <div class="ou-pct" style="color:var(--accent)">${_pct(ou.gg)}</div>
+          <div class="ou-fair">Fair ${_fair(ou.gg)}</div>
+        </div>
+        <div class="ou-box">
+          <div class="ou-label">NG</div>
+          <div class="ou-pct" style="color:var(--red)">${_pct(1-ou.gg)}</div>
+          <div class="ou-fair">Fair ${_fair(1-ou.gg)}</div>
+        </div>
+      </div>` : ''}
+
+      <!-- NOTE -->
+      <div style="margin-top:16px;padding:10px 12px;background:var(--bg);
+                  border-radius:8px;border:1px solid var(--border);">
+        <div style="font-size:10px;color:var(--muted);
+                    font-family:'DM Mono',monospace;line-height:1.7;">
+          📌 Fair = quota equa dal modello Poisson+Dixon-Coles<br>
+          📌 Value% = prob_modello × quota - 1 (positivo = vantaggio)<br>
+          📌 Confidence basata su Value% e AQ_FILTRATO
+        </div>
+      </div>
+    </div>`;
+
+  // Mostra il pannello
+  const phEl = document.getElementById('preview-placeholder');
+  const pc   = document.getElementById('preview-content');
+  if (!pc) { console.error('preview-content non trovato'); return; }
+  if (phEl) phEl.style.display = 'none';
+  pc.innerHTML = panelHTML;
+  pc.style.display = 'block';
+  pc.scrollTop = 0;
+
+  // Mobile: apri pannello
+  const pp = document.getElementById('preview-panel');
+  if (pp) pp.classList.add('open');
+}
+
+
+function filterLeague(league) {
+  currentFilter = league;
+  valueOnly = false;
+  betOnly = false;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  renderList();
+}
+function filterValue() {
+  valueOnly = !valueOnly;
+  betOnly = false;
+  document.querySelectorAll('.value-filter').forEach(c => c.classList.remove('active'));
+  if (valueOnly) event.target.classList.add('active');
+  renderList();
+}
+function filterBet() {
+  betOnly = !betOnly;
+  valueOnly = false;
+  document.querySelectorAll('.value-filter').forEach(c => c.classList.remove('active'));
+  if (betOnly) event.target.classList.add('active');
+  renderList();
+}
+
+function parseDataItaliana(str) {
+  // Converte "SABATO 18 APRILE 2026" → "2026-04-18"
+  if (!str) return '';
+  // Se già formato ISO
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0,10);
+  const mesi = {
+    'GENNAIO':'01','FEBBRAIO':'02','MARZO':'03','APRILE':'04',
+    'MAGGIO':'05','GIUGNO':'06','LUGLIO':'07','AGOSTO':'08',
+    'SETTEMBRE':'09','OTTOBRE':'10','NOVEMBRE':'11','DICEMBRE':'12'
+  };
+  const parts = str.toUpperCase().trim().split(/\s+/);
+  // Formato: "SABATO 18 APRILE 2026" → parts[1]=giorno, parts[2]=mese, parts[3]=anno
+  // Oppure: "18 APRILE 2026" → parts[0]=giorno, parts[1]=mese, parts[2]=anno
+  let giorno, mese, anno;
+  if (parts.length >= 4) {
+    giorno = parts[1]; mese = mesi[parts[2]] || '01'; anno = parts[3];
+  } else if (parts.length >= 3) {
+    giorno = parts[0]; mese = mesi[parts[1]] || '01'; anno = parts[2];
+  } else return str;
+  return `${anno}-${mese}-${giorno.padStart(2,'0')}`;
+}
+
+function normalizeCampionato(camp) {
+  // Mappa nomi nazione → nome campionato
+  // NB: ITALIA non viene mappato — il campionato corretto (Serie A/B/C)
+  // viene già dalla formula AS in VALUE_SCANNER tramite CAMP_ITA
+  const MAP = {
+    'BELGIO':'Jupiler Pro', 'TURCHIA':'Super Lig',
+    'PORTOGALLO':'Primeira Liga',
+    'INGHILTERRA':'Premier League', 'SPAGNA':'La Liga',
+    'GERMANIA':'Bundesliga', 'FRANCIA':'Ligue 1',
+    'ALTRO':'Altro',
+  };
+  return MAP[(camp||'').toUpperCase()] || camp;
+}
+
+function parseDataItaliana(str) {
+  if (!str) return '';
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0,10);
+  const mesi = {
+    'GENNAIO':'01','FEBBRAIO':'02','MARZO':'03','APRILE':'04',
+    'MAGGIO':'05','GIUGNO':'06','LUGLIO':'07','AGOSTO':'08',
+    'SETTEMBRE':'09','OTTOBRE':'10','NOVEMBRE':'11','DICEMBRE':'12'
+  };
+  // Fix: Excel può troncare la stringa — "202" → "2026" (anno corrente)
+  let s = str.toUpperCase().trim();
+  s = s.replace(/\b(202)\b(?!\d)/g, '2026'); // "202" → "2026" se non seguito da cifra
+  const parts = s.split(/\s+/);
+  let giorno, mese, anno;
+  if (parts.length >= 4) {
+    giorno = parts[1]; mese = mesi[parts[2]]||'01'; anno = parts[3];
+  } else if (parts.length >= 3) {
+    giorno = parts[0]; mese = mesi[parts[1]]||'01'; anno = parts[2];
+  } else return str;
+  // Assicura anno 4 cifre
+  if (anno && anno.length === 3) anno = anno + '6';
+  if (!anno || anno.length < 4) anno = new Date().getFullYear().toString();
+  return `${anno}-${mese}-${giorno.padStart(2,'0')}`;
+}
+
+function normalizeCampionato(camp) {
+  const MAP = {
+    'BELGIO':'Jupiler Pro','TURCHIA':'Super Lig',
+    'PORTOGALLO':'Primeira Liga','ITALIA':'Serie A',
+    'INGHILTERRA':'Premier League','SPAGNA':'La Liga',
+    'GERMANIA':'Bundesliga','FRANCIA':'Ligue 1','ALTRO':'Altro',
+  };
+  return MAP[(camp||'').toUpperCase()] || camp;
+}
+
+function adaptRow(m) {
+  // Nomi colonne esatti da VALUE_SCANNER Excel
+  // L=Odd1, M=OddX, N=Odd2 → "Odd1","OddX","Odd2" nel col_map
+  // F=Prob1_mod, G=ProbX_mod, H=Prob2_mod → "Prob1","ProbX","Prob2"
+  // BB=DECISION → "Decision"
+  const odd1 = parseFloat(m.Odd1)  || parseFloat(m.Odd1_book) || 0;
+  const oddx = parseFloat(m.OddX)  || parseFloat(m.OddX_book) || 0;
+  const odd2 = parseFloat(m.Odd2)  || parseFloat(m.Odd2_book) || 0;
+  const p1   = parseFloat(m.Prob1) || parseFloat(m.Prob1_mod) || null;
+  const px   = parseFloat(m.ProbX) || parseFloat(m.ProbX_mod) || null;
+  const p2   = parseFloat(m.Prob2) || parseFloat(m.Prob2_mod) || null;
+  const lh   = parseFloat(m.lam_h) || null;
+  const la   = parseFloat(m.lam_a) || null;
+  const v1   = m.Value1  != null ? parseFloat(m.Value1)  : null;
+  const vx   = m.ValueX  != null ? parseFloat(m.ValueX)  : null;
+  const v2   = m.Value2  != null ? parseFloat(m.Value2)  : null;
+
+  // Decision: usa Excel oppure calcola
+  let dec = (m.Decision || m.DECISION || m.Segnale || '').replace('—','').trim();
+  if (dec === 'BET' || dec === 'NO BET') {
+    dec = dec === 'BET' ? 'BET' : 'SKIP';
+  }
+  if (!dec) {
+    const vmax = Math.max(v1||0, vx||0, v2||0);
+    dec = vmax > 0.05 ? 'BET' : vmax > 0 ? 'WATCH' : 'SKIP';
+  }
+
+  const campRaw = m.Campionato || m.League || '';
+  const league  = normalizeCampionato(campRaw);
+
+  return {
+    id:         m.Match_ID || (m.Home + '_' + m.Away),
+    home:       m.Home  || '',
+    away:       m.Away  || '',
+    league:     league,
+    date:       parseDataItaliana(m.Date || ''),
+    b365h: odd1, b365d: oddx, b365a: odd2,
+    prob1: p1, probx: px, prob2: p2,
+    lam_h: lh, lam_a: la,
+    value1: v1, valuex: vx, value2: v2,
+    decision:   dec,
+    confidence: parseFloat(m.Confidence) || 0,
+    kelly:      parseFloat(m.Kelly)      || 0,
+    ov25:       parseFloat(m.Prob_OV25)  || null,
+    probGG:     parseFloat(m.Prob_GG)    || null,
+    stake:      parseFloat(m.Stake)      || 0,
+    mercato:    m.Mercato || m.TipoScommessa || '',
+    riskFlag:   m.RiskFlag || 'OK',
+    oddOV25:    parseFloat(m.Odd_OV25)   || 0,
+    oddGG:      parseFloat(m.Odd_GG)     || 0,
+  };
+}
+
+function loadData() {
+  // I dati sono iniettati direttamente da engine.py come variabile JS
+  // Nessun server necessario — funziona con doppio click
+  if (typeof LIVE_DATA !== 'undefined' && Array.isArray(LIVE_DATA) && LIVE_DATA.length > 0) {
+    DEMO_DATA = LIVE_DATA.map(adaptRow).filter(m => m.home && m.away);
+    const ts  = typeof DATA_TIMESTAMP !== 'undefined' ? DATA_TIMESTAMP : '';
+    showStatus('✅ ' + DEMO_DATA.length + ' partite — ' + ts, 'ok');
+    renderList();
+  } else {
+    // Nessun dato reale → mostra demo con avviso
+    showStatus('⚠️  Nessun dato — lancia engine.py e riapri', 'warn');
+    renderList();
+  }
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('status-bar');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = type === 'ok' ? 'var(--accent)' : type === 'warn' ? 'var(--yellow)' : 'var(--red)';
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+
+// Init
+loadData();
+</script>
+</body>
+</html>

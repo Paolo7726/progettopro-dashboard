@@ -98,6 +98,24 @@ html,body{height:100%;overflow:hidden;font-family:'DM Mono',monospace;background
 .nb{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:16px;font-size:10px;color:var(--muted);line-height:1.7;}
 .empty{text-align:center;padding:60px 20px;color:var(--muted);}
 ::-webkit-scrollbar{width:0;height:0;}
+.ora-tag{background:rgba(74,158,255,.1);border:1px solid rgba(74,158,255,.25);border-radius:4px;padding:2px 7px;font-size:10px;font-weight:600;color:#4a9eff;margin-right:4px;}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;}
+.sc{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 4px;text-align:center;}
+.sc.t1{border-color:var(--accent);background:rgba(0,212,170,.06);}
+.sr{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;}
+.sp{font-size:10px;color:var(--muted);}
+.se{font-size:9px;font-weight:700;margin-top:2px;}
+.se.e1{color:var(--accent);}.se.eX{color:var(--yellow);}.se.e2{color:var(--red);}
+.fw{margin-bottom:10px;}
+.fl{font-size:10px;color:var(--muted);margin-bottom:5px;}
+.fps{display:flex;gap:5px;flex-wrap:wrap;}
+.fp{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.fpp{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;}
+.fpp.W{background:rgba(0,212,170,.15);color:var(--accent);border:1px solid rgba(0,212,170,.3);}
+.fpp.D{background:rgba(247,183,49,.12);color:var(--yellow);border:1px solid rgba(247,183,49,.3);}
+.fpp.L{background:rgba(231,76,94,.12);color:var(--red);border:1px solid rgba(231,76,94,.3);}
+.fs{font-size:9px;color:var(--muted);}
+.fo{font-size:8px;color:var(--muted);max-width:34px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;}
 </style>
 </head>
 <body>
@@ -128,7 +146,7 @@ function nc(c){const MP={BELGIO:'Jupiler Pro',TURCHIA:'Super Lig',PORTOGALLO:'Pr
 function ar(m){const v1=m.Value1!=null?parseFloat(m.Value1):null,vx=m.ValueX!=null?parseFloat(m.ValueX):null,v2=m.Value2!=null?parseFloat(m.Value2):null;const p1=m.Prob1!=null?parseFloat(m.Prob1):null,px=m.ProbX!=null?parseFloat(m.ProbX):null,p2=m.Prob2!=null?parseFloat(m.Prob2):null;const lh=m.lam_h!=null?parseFloat(m.lam_h):null,la=m.lam_a!=null?parseFloat(m.lam_a):null;let dec=(m.Decision||'').replace('—','').trim();if(!dec){const vm=Math.max(v1||0,vx||0,v2||0);dec=vm>0.05?'BET':vm>0?'WATCH':'SKIP';}
 const camp=m.Campionato_AS||m.Campionato||'';
 const league=camp&&camp!==''?camp:nc(m.Campionato||'');
-return{id:m.Match_ID||(m.Home+'_'+m.Away),home:m.Home||'',away:m.Away||'',league:league,date:pd(m.Date||''),o1:parseFloat(m.Odd1)||0,ox:parseFloat(m.OddX)||0,o2:parseFloat(m.Odd2)||0,p1,px,p2,lh,la,v1,vx,v2,dec,conf:parseFloat(m.Confidence)||0,kelly:parseFloat(m.Kelly)||0,stake:parseFloat(m.Stake)||0,ov25:parseFloat(m.Prob_OV25)||null,gg:parseFloat(m.Prob_GG)||null};}
+return{id:m.Match_ID||(m.Home+'_'+m.Away),home:m.Home||'',away:m.Away||'',league:league,date:pd(m.Date||''),o1:parseFloat(m.Odd1)||0,ox:parseFloat(m.OddX)||0,o2:parseFloat(m.Odd2)||0,p1,px,p2,lh,la,v1,vx,v2,dec,conf:parseFloat(m.Confidence)||0,kelly:parseFloat(m.Kelly)||0,stake:parseFloat(m.Stake)||0,ov25:parseFloat(m.Prob_OV25)||null,gg:parseFloat(m.Prob_GG)||null,ora:m.ORA||'',score_probs:m.score_probs||[],forma_home:m.forma_home||[],forma_away:m.forma_away||[]};}
 function ou(lh,la){if(!lh||!la)return null;const t=lh+la;return{ov05:1-Math.exp(-t),ov15:1-Math.exp(-t)*(1+t),ov25:1-Math.exp(-t)*(1+t+t*t/2),ov35:1-Math.exp(-t)*(1+t+t*t/2+Math.pow(t,3)/6),gg:(1-Math.exp(-lh))*(1-Math.exp(-la))};}
 const pct=v=>(v!=null&&!isNaN(v))?(v*100).toFixed(1)+'%':'—';
 const fair=p=>(p!=null&&!isNaN(p)&&p>0.01)?(1/p).toFixed(2):'—';
@@ -178,17 +196,24 @@ if(!fil.length){lw.innerHTML='<div class="empty"><div style="font-size:40px;opac
 let h='';
 for(const dt of Object.keys(bd).sort()){let lb=dt;try{const d=new Date(dt+'T12:00:00');lb=d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});lb=lb.charAt(0).toUpperCase()+lb.slice(1);}catch(e){}
 h+=`<div class="dgrp"><div class="dlbl">${lb} — ${bd[dt].length}</div>`;
-bd[dt].forEach((m,i)=>{const hv=(m.v1||0)>0||(m.vx||0)>0||(m.v2||0)>0,cls=m.dec==='BET'?'ib':hv?'hv':'';const dot=LC[m.league]||'#5a6580';const bdg=m.dec==='BET'?'<span class="bdg bet">⚡ BET</span>':m.dec==='WATCH'?'<span class="bdg watch">👁 WATCH</span>':'';
+bd[dt].forEach((m,i)=>{const hv=(m.v1||0)>0||(m.vx||0)>0||(m.v2||0)>0,cls=m.dec==='BET'?'ib':hv?'hv':'';const dot=LC[m.league]||'#5a6580';const bdg=(m.ora?'<span class="ora-tag">⏰ '+m.ora+'</span>':'')+(m.dec==='BET'?'<span class="bdg bet">⚡ BET</span>':m.dec==='WATCH'?'<span class="bdg watch">👁 WATCH</span>':'');
 h+=`<div class="mc ${cls}" data-id="${m.id}" onclick="om('${m.id}')" style="animation-delay:${i*.03}s"><div class="ctop"><span class="lnm"><span class="ldot" style="background:${dot}"></span>${m.league}</span>${bdg}</div><div class="tms">${m.home} <span class="vs">vs</span> ${m.away}</div><div class="or"><div class="ob ${(m.v1||0)>0?'hot':''}"><span class="ol">1 Casa</span><span class="ov">${odd(m.o1)}</span>${vbadge(m.v1,true)}</div><div class="ob ${(m.vx||0)>0?'hot':''}"><span class="ol">X Pareggio</span><span class="ov">${odd(m.ox)}</span>${vbadge(m.vx,true)}</div><div class="ob ${(m.v2||0)>0?'hot':''}"><span class="ol">2 Ospite</span><span class="ov">${odd(m.o2)}</span>${vbadge(m.v2,true)}</div></div></div>`;});
 h+='</div>';}
 lw.innerHTML=h;}
-function om(id){const m=DATA.find(x=>x.id===id);if(!m)return;document.getElementById('ptl').textContent=m.home+' vs '+m.away;document.getElementById('pmt').textContent=m.league+' · '+m.date;const od=m.lh&&m.la?ou(m.lh,m.la):null,conf=m.conf||0,dc=m.dec==='BET'?'bet':m.dec==='WATCH'?'watch':'skip',dl=m.dec==='BET'?'⚡ BET':m.dec==='WATCH'?'👁 WATCH':'⛔ SKIP';
+function om(id){const m=DATA.find(x=>x.id===id);if(!m)return;document.getElementById('ptl').textContent=m.home+' vs '+m.away;const oraLabel=m.ora?' · ⏰ '+m.ora:'';document.getElementById('pmt').textContent=m.league+' · '+m.date+oraLabel;const od=m.lh&&m.la?ou(m.lh,m.la):null,conf=m.conf||0,dc=m.dec==='BET'?'bet':m.dec==='WATCH'?'watch':'skip',dl=m.dec==='BET'?'⚡ BET':m.dec==='WATCH'?'👁 WATCH':'⛔ SKIP';
 let bdy=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:17px;line-height:1.2">${m.home}<br><span style="color:var(--muted);font-size:12px;font-weight:400">vs</span> ${m.away}</div><div style="font-size:10px;color:var(--muted);margin-top:4px">${m.league} · ${m.date}</div></div><div class="db ${dc}">${dl}<span class="ds">conf ${(conf*100).toFixed(0)}%</span></div></div>`;
 bdy+=`<div class="st">📋 Quote</div><div class="op"><div class="opb ${(m.v1||0)>0?'hot':''}"><div class="opl">1 Casa</div><div class="opv">${odd(m.o1)}</div>${vbadge(m.v1)}</div><div class="opb ${(m.vx||0)>0?'hot':''}"><div class="opl">X Pareggio</div><div class="opv">${odd(m.ox)}</div>${vbadge(m.vx)}</div><div class="opb ${(m.v2||0)>0?'hot':''}"><div class="opl">2 Ospite</div><div class="opv">${odd(m.o2)}</div>${vbadge(m.v2)}</div></div>`;
 if(m.lh&&m.la)bdy+=`<div class="st">⚽ Gol attesi (λ)</div><div class="lg"><div class="lb"><div class="lt">${m.home}</div><div class="lv">${m.lh.toFixed(2)}</div><div class="ll">λ Casa</div></div><div class="lb"><div class="lt">${m.away}</div><div class="lv">${m.la.toFixed(2)}</div><div class="ll">λ Ospite</div></div></div><div style="text-align:center;font-size:10px;color:var(--muted);margin-top:4px">Media gol: <b style="color:var(--text)">${(m.lh+m.la).toFixed(2)}</b></div>`;
 if(conf>0)bdy+=`<div class="st">📊 Confidence</div><div class="cr"><span class="cl">Confidence</span><div class="cbw"><div class="cbar" style="width:${(conf*100).toFixed(0)}%"></div></div><span class="cv">${(conf*100).toFixed(0)}%</span></div>${m.kelly>0?`<div class="cr"><span class="cl">Kelly</span><div class="cbw"><div class="cbar" style="width:${Math.min(m.kelly*500,100)}%;background:var(--yellow)"></div></div><span class="cv" style="color:var(--yellow)">${(m.kelly*100).toFixed(1)}%</span></div>`:''}`;
 if(m.p1!=null)bdy+=`<div class="st">🎯 Prob 1X2</div><div class="pr"><span class="pl">1 Casa</span><div class="pbw"><div class="pbar" style="width:${pct(m.p1)}"></div></div><span class="pp">${pct(m.p1)}</span><span class="fq">F ${fair(m.p1)}</span></div><div class="pr"><span class="pl">X Pareg.</span><div class="pbw"><div class="pbar am" style="width:${pct(m.px)}"></div></div><span class="pp">${pct(m.px)}</span><span class="fq">F ${fair(m.px)}</span></div><div class="pr"><span class="pl">2 Ospite</span><div class="pbw"><div class="pbar rd" style="width:${pct(m.p2)}"></div></div><span class="pp">${pct(m.p2)}</span><span class="fq">F ${fair(m.p2)}</span></div>`;
 if(od)bdy+=`<div class="st">📈 Over/Under</div><div class="og">${[['Over 0.5',od.ov05,'var(--accent)'],['Over 1.5',od.ov15,'var(--accent)'],['Over 2.5',od.ov25,'var(--blue)'],['Over 3.5',od.ov35,'var(--yellow)'],['GG',od.gg,'var(--accent)'],['NG',1-od.gg,'var(--red)']].map(([l,v,c])=>`<div class="oub"><div class="oul">${l}</div><div class="oup" style="color:${c}">${pct(v)}</div><div class="ouf">F ${fair(v)}</div></div>`).join('')}</div>`;
+// Risultati esatti
+const sp=m.score_probs||[];
+if(sp.length){bdy+='<div class="st">🎲 Risultati esatti più probabili</div><div class="sg">';sp.slice(0,6).forEach((s,i)=>{const ec=s.esito==='1'?'e1':s.esito==='X'?'eX':'e2';bdy+='<div class="sc'+(i===0?' t1':'')+'"><div class="sr">'+s.score+'</div><div class="sp">'+s.prob+'%</div><div class="se '+ec+'">'+s.esito+'</div></div>';});bdy+='</div>';}
+// Forma recente
+function fforma(forma,label){if(!forma||!forma.length)return'';let o='<div class="fw"><div class="fl">'+label+'</div><div class="fps">';forma.slice(0,5).forEach(f=>{o+='<div class="fp"><div class="fpp '+f.ris+'">'+f.ris+'</div><div class="fs">'+f.gf+'-'+f.gs+'</div><div class="fo">'+(f.opp||'')+'</div></div>';});return o+'</div></div>';}
+const fh=fforma(m.forma_home,'🏠 '+m.home),fa=fforma(m.forma_away,'✈️ '+m.away);
+if(fh||fa){bdy+='<div class="st">📊 Forma recente</div>';bdy+=fh+fa;}
 bdy+=`<div class="nb">📌 Fair = quota equa modello Poisson+DC<br>📌 Value% = prob×quota−1<br>📌 Agg: ${DATA_TIMESTAMP||'—'}</div>`;
 document.getElementById('pb').innerHTML=bdy;document.getElementById('pn').classList.add('open');document.getElementById('lw').classList.add('po');}
 function cp(){document.getElementById('pn').classList.remove('open');document.getElementById('lw').classList.remove('po');}

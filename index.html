@@ -3,205 +3,796 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>ProgettoPro · Match Scanner</title>
+<title>Progetto Pro — Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap');
-:root{--bg:#080b10;--surf:#0f1420;--card:#141928;--border:#1e2a3d;--accent:#00d4aa;--yellow:#f7b731;--red:#e74c5e;--blue:#4a9eff;--muted:#5a6580;--text:#e8edf5;}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overflow:hidden;font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);}
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surf);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:100;height:52px;}
-.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:var(--accent);}
-.logo span{color:var(--text);}
-.stats{display:flex;gap:12px;font-size:11px;color:var(--muted);}
-.b-bet{color:var(--accent);font-family:'Syne',sans-serif;font-weight:700;}
-.b-wtch{color:var(--yellow);font-family:'Syne',sans-serif;font-weight:700;}
-.fbar{position:fixed;top:52px;left:0;right:0;z-index:99;background:var(--surf);border-bottom:1px solid var(--border);overflow-x:auto;overflow-y:hidden;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:8px 12px;display:flex;gap:8px;align-items:center;}
-.fbar::-webkit-scrollbar{display:none;}
-.chip{display:inline-flex;align-items:center;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;font-family:'Syne',sans-serif;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;}
-.chip.active{background:var(--accent);color:#000;border-color:var(--accent);}
-.chip.vc.active{background:var(--yellow);color:#000;border-color:var(--yellow);}
-.chip.bc.active{background:var(--red);color:#fff;border-color:var(--red);}
-.lwrap{position:fixed;top:104px;bottom:0;left:0;right:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px 20px;transition:transform .35s cubic-bezier(.4,0,.2,1);}
-.lwrap.po{transform:translateX(-100%);}
-.dgrp{margin-bottom:16px;}
-.dlbl{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;padding:0 4px 8px;border-bottom:1px solid var(--border);margin-bottom:10px;}
-.mc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;position:relative;overflow:hidden;animation:fu .25s ease both;}
-.mc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent;}
-.mc.hv::before{background:var(--yellow);}
-.mc.ib{border-color:rgba(0,212,170,.3);}
-.mc.ib::before{background:var(--accent);}
-@keyframes fu{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
-.ctop{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.bdg{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;}
-.bdg.bet{background:rgba(0,212,170,.2);color:var(--accent);}
-.bdg.watch{background:rgba(247,183,49,.15);color:var(--yellow);}
-.ldot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:5px;flex-shrink:0;}
-.lnm{font-size:10px;font-weight:600;font-family:'Syne',sans-serif;opacity:.7;display:flex;align-items:center;}
-.tms{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;line-height:1.3;margin-bottom:10px;}
-.tms .vs{color:var(--muted);font-size:10px;font-weight:400;margin:0 5px;}
-.or{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
-.ob{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 6px;text-align:center;transition:border-color .15s;}
-.ob.hot{border-color:var(--accent);background:rgba(0,212,170,.08);}
-.ol{font-size:9px;color:var(--muted);display:block;margin-bottom:2px;}
-.ov{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;}
-.ob.hot .ov{color:var(--accent);}
-.vb{font-size:9px;display:block;margin-top:2px;font-weight:600;border-radius:2px;padding:1px 3px;}
-.vb.pos{color:var(--accent);}
-.vb.neg{color:var(--red);opacity:.7;}
-/* Pannello */
-.panel{position:fixed;top:104px;bottom:0;left:0;right:0;background:var(--surf);overflow-y:auto;-webkit-overflow-scrolling:touch;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:50;}
-.panel.open{transform:translateX(0);}
-.pbk{position:sticky;top:0;background:var(--surf);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:10px;z-index:10;cursor:pointer;}
-.ba{font-size:18px;color:var(--accent);}
-.pmn{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
-.pmt{font-size:10px;color:var(--muted);}
-.pb{padding:16px;padding-bottom:30px;}
-.st{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:16px 0 8px;display:flex;align-items:center;gap:6px;}
-.st::after{content:'';flex:1;height:1px;background:var(--border);}
-.op{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
-.opb{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 8px;text-align:center;}
-.opb.hot{border-color:var(--accent);background:rgba(0,212,170,.08);}
-.opl{font-size:9px;color:var(--muted);margin-bottom:4px;}
-.opv{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;}
-.opb.hot .opv{color:var(--accent);}
-.ovbp{font-size:10px;padding:2px 5px;border-radius:3px;font-weight:600;margin-top:3px;display:inline-block;}
-.ovbp.pos{background:rgba(0,212,170,.15);color:var(--accent);}
-.ovbp.neg{background:rgba(231,76,94,.1);color:var(--red);}
-.lg{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.lb{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;}
-.lt{font-size:10px;color:var(--muted);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.lv{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:var(--accent);}
-.ll{font-size:9px;color:var(--muted);margin-top:2px;}
-.pr{display:flex;align-items:center;gap:6px;margin-bottom:7px;}
-.pl{font-size:11px;color:var(--muted);width:70px;flex-shrink:0;}
-.pbw{flex:1;background:var(--border);border-radius:3px;height:6px;overflow:hidden;}
-.pbar{height:100%;border-radius:3px;background:var(--accent);transition:width .5s ease;}
-.pbar.am{background:var(--yellow);}
-.pbar.rd{background:var(--red);}
-.pp{font-size:11px;font-weight:600;width:36px;text-align:right;}
-.fq{font-size:10px;color:var(--muted);width:44px;text-align:right;}
-.og{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
-.oub{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px;text-align:center;}
-.oul{font-size:9px;color:var(--muted);}
-.oup{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin:2px 0;}
-.ouf{font-size:9px;color:var(--muted);}
-.cr{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-.cl{font-size:11px;color:var(--muted);width:80px;flex-shrink:0;}
-.cbw{flex:1;background:var(--border);border-radius:4px;height:8px;overflow:hidden;}
-.cbar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--blue));}
-.cv{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;}
-.db{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;}
-.db.bet{background:rgba(0,212,170,.15);border:1px solid var(--accent);color:var(--accent);}
-.db.watch{background:rgba(247,183,49,.12);border:1px solid var(--yellow);color:var(--yellow);}
-.db.skip{background:rgba(90,101,128,.12);border:1px solid var(--border);color:var(--muted);}
-.ds{font-size:10px;font-weight:400;opacity:.8;}
-.nb{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:16px;font-size:10px;color:var(--muted);line-height:1.7;}
-.empty{text-align:center;padding:60px 20px;color:var(--muted);}
-::-webkit-scrollbar{width:0;height:0;}
+:root {
+  --bg:       #080c14;
+  --surface:  #0d1420;
+  --card:     #111827;
+  --border:   #1e2d45;
+  --accent:   #00d4ff;
+  --green:    #00e676;
+  --yellow:   #ffc107;
+  --red:      #ff5252;
+  --muted:    #4a6080;
+  --text:     #e8f0fe;
+  --text2:    #8fa8c8;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-ui:   'Syne', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* ── HEADER ── */
+.header {
+  background: linear-gradient(135deg, #0a1628 0%, #0d1f3c 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.logo {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--accent);
+}
+.logo span { color: var(--text); }
+.ts {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+/* ── KPI BAR ── */
+.kpi-bar {
+  display: flex;
+  gap: 8px;
+}
+.kpi-pill {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.72rem;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.kpi-pill b { color: var(--text); }
+.kpi-pill.bet-pill { border-color: var(--green); color: var(--green); }
+.kpi-pill.watch-pill { border-color: var(--yellow); color: var(--yellow); }
+
+/* ── FILTRI ── */
+.filters {
+  padding: 12px 16px 0;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.filters::-webkit-scrollbar { display: none; }
+.filter-btn {
+  white-space: nowrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 0.72rem;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  transition: all 0.15s;
+}
+.filter-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #000;
+}
+
+/* ── CARDS ── */
+.cards { padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.15s;
+}
+.card:active { transform: scale(0.99); }
+
+/* Bordo sinistro colorato per decisione */
+.card.bet   { border-left: 3px solid var(--green); }
+.card.watch { border-left: 3px solid var(--yellow); }
+.card.skip  { border-left: 3px solid var(--border); }
+
+/* ── CARD HEADER ── */
+.card-head {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.league-tag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.match-datetime {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.match-date {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--muted);
+}
+.match-time {
+  background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.3);
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ── SQUADRE ── */
+.teams {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.team-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.team-name.away { text-align: right; }
+.vs-sep {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* ── BADGE DECISIONE ── */
+.decision-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.decision-badge.bet   { background: rgba(0,230,118,0.12); color: var(--green); border: 1px solid rgba(0,230,118,0.3); }
+.decision-badge.watch { background: rgba(255,193,7,0.12);  color: var(--yellow); border: 1px solid rgba(255,193,7,0.3); }
+.decision-badge.skip  { background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid var(--border); }
+
+/* ── CARD BODY ── */
+.card-body { padding: 10px 14px; }
+
+/* ── SCOMMESSA ── */
+.bet-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  background: rgba(0,230,118,0.06);
+  border: 1px solid rgba(0,230,118,0.15);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+.bet-tipo {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--green);
+}
+.bet-quota {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-left: auto;
+}
+.bet-stake {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text2);
+}
+
+/* ── METRICHE ── */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.metric {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  text-align: center;
+}
+.metric-label {
+  font-size: 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+.metric-value {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.metric-value.pos { color: var(--green); }
+.metric-value.neg { color: var(--red); }
+.metric-value.warn { color: var(--yellow); }
+
+/* ── PROBABILITÀ 1X2 ── */
+.probs-bar {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 6px;
+  margin-bottom: 4px;
+}
+.prob-seg-1  { background: var(--green); }
+.prob-seg-x  { background: var(--yellow); }
+.prob-seg-2  { background: var(--red); }
+
+.prob-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.prob-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text2);
+  text-align: center;
+  flex: 1;
+}
+.prob-label b { display: block; color: var(--text); font-size: 0.75rem; }
+
+/* ── COLLAPSIBLE ── */
+.expand-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text2);
+  transition: color 0.15s;
+}
+.expand-btn:hover { color: var(--accent); }
+.expand-icon { transition: transform 0.2s; font-size: 0.8rem; }
+.expand-btn.open .expand-icon { transform: rotate(180deg); }
+
+.expand-content {
+  display: none;
+  padding: 10px 14px 12px;
+  border-top: 1px solid var(--border);
+}
+.expand-content.open { display: block; }
+
+/* ── RISULTATI ESATTI ── */
+.scores-title {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.scores-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.score-chip {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 4px;
+  text-align: center;
+}
+.score-chip.top1 { border-color: rgba(0,212,255,0.4); background: rgba(0,212,255,0.07); }
+.score-result {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.score-pct {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text2);
+}
+.score-esito {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-top: 1px;
+}
+.score-esito.e1 { color: var(--green); }
+.score-esito.eX { color: var(--yellow); }
+.score-esito.e2 { color: var(--red); }
+
+/* ── FORMA ── */
+.forma-section { margin-bottom: 6px; }
+.forma-team-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.forma-row {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.forma-pill {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.forma-pill.W { background: rgba(0,230,118,0.15); color: var(--green); border: 1px solid rgba(0,230,118,0.3); }
+.forma-pill.D { background: rgba(255,193,7,0.12);  color: var(--yellow); border: 1px solid rgba(255,193,7,0.3); }
+.forma-pill.L { background: rgba(255,82,82,0.12);  color: var(--red); border: 1px solid rgba(255,82,82,0.3); }
+.forma-score {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  line-height: 1.2;
+}
+.forma-score b { color: var(--text2); }
+
+/* ── QUOTE ── */
+.odds-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.odd-chip {
+  flex: 1;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px;
+  text-align: center;
+}
+.odd-label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.odd-value {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ── EMPTY STATE ── */
+.empty {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--muted);
+}
+.empty-icon { font-size: 3rem; margin-bottom: 12px; }
+.empty-title { font-size: 1.1rem; font-weight: 700; color: var(--text2); margin-bottom: 6px; }
+.empty-sub { font-size: 0.8rem; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 8px 0 12px;
+  z-index: 100;
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 4px 0;
+  transition: color 0.15s;
+}
+.nav-item.active { color: var(--accent); }
+.nav-icon { font-size: 1.1rem; }
 </style>
 </head>
 <body>
-<div class="hdr">
-  <div class="logo">Progetto<span>Pro</span></div>
-  <div class="stats">Tot:<b id="st" class="b-bet">—</b> BET:<b id="sb" class="b-bet">—</b> WATCH:<b id="sw" class="b-wtch">—</b></div>
-</div>
-<div class="fbar" id="fb">
-  <button class="chip active" id="chip-all-m" onclick="sf('',this)">Tutti</button>
-  <!-- chip campionato dinamici — generati da buildChips() -->
-  <button class="chip vc" onclick="tv(this)">Solo VALUE+</button>
-  <button class="chip bc" onclick="tb(this)">Solo BET</button>
-</div>
-<div class="lwrap" id="lw"></div>
-<div class="panel" id="pn">
-  <div class="pbk" onclick="cp()"><span class="ba">←</span>
-    <div><div class="pmn" id="ptl">—</div><div class="pmt" id="pmt">—</div></div>
-  </div>
-  <div class="pb" id="pb"></div>
-</div>
-<script>
-var LIVE_DATA = [{"Date": "LUNEDÌ 25 MAGGIO 2026", "Home": "Paderborn", "Away": "Wolfsburg", "Home_orig": "SC Paderborn", "Away_orig": "Wolfsburg", "Campionato": "Bundesliga", "Match_ID": "20260525_SC_PADERBORN_WOLFSBURG", "Odd1": 3.5, "OddX": 3.5, "Odd2": 2.05, "Odd_OV25": 1.85, "Odd_UN25": 1.85, "Odd_GG": 1.72, "Odd_NG": 2.0, "lam_h": 2.7896, "lam_a": 2.2611, "Prob1": 0.501604, "ProbX": 0.178119, "Prob2": 0.320278, "Prob_OV25": 0.879532, "Prob_UN25": 0.1205, "Prob_GG": 0.840712, "Prob_NG": 0.1593, "Decision": "BET", "REASON": "BET", "TipoScommessa": "1", "Odds_Bet": 3.5, "Value_Max": 0.7556, "EV": 0.7556, "Kelly": 0.0756, "Confidence": 0.5826, "Stake": 75.6, "lam_tot": 5.0507, "_modello": "modello", "mu_H": 1.589, "mu_A": 1.327, "RISK_FLAG": "OK", "AQ_FILTRATO": 0.7556, "Value1": 0.7556, "ValueX": -0.3766, "Value2": -0.3434, "Value_OV25": 0.6271, "Value_UN25": -0.7771, "Value_GG": 0.446, "Value_NG": -0.6814, "Prob_sel": 0.501604}, {"Date": "LUNEDÌ 25 MAGGIO 2026", "Home": "Goteborg", "Away": "Mjallby", "Home_orig": "Goteborg", "Away_orig": "Mjallby", "Campionato": "SVEZIA", "Match_ID": "20260525_GOTEBORG_MJALLBY", "Odd1": 2.6, "OddX": 3.05, "Odd2": 2.8, "Odd_OV25": 1.92, "Odd_UN25": 1.8, "Odd_GG": 1.7, "Odd_NG": 2.05, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.104, "TipoScommessa": "1", "Odds_Bet": 2.6, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_SVEZIA_no_Goteborg_no_Mjallby", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.104, "ValueX": -0.1747, "Value2": -0.1468, "Value_OV25": -0.1489, "Value_UN25": 0.0021, "Value_GG": -0.1599, "Value_NG": 0.0369, "Prob_sel": 0.4246}, {"Date": "LUNEDÌ 25 MAGGIO 2026", "Home": "Elfsborg", "Away": "Hacken", "Home_orig": "Elfsborg", "Away_orig": "Hacken", "Campionato": "SVEZIA", "Match_ID": "20260525_ELFSBORG_HACKEN", "Odd1": 2.8, "OddX": 3.35, "Odd2": 2.4, "Odd_OV25": 1.8, "Odd_UN25": 1.9, "Odd_GG": 1.65, "Odd_NG": 2.1, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.1889, "TipoScommessa": "1", "Odds_Bet": 2.8, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_SVEZIA_no_Elfsborg_no_Hacken", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.1889, "ValueX": -0.0935, "Value2": -0.2687, "Value_OV25": -0.2021, "Value_UN25": 0.0577, "Value_GG": -0.1846, "Value_NG": 0.0622, "Prob_sel": 0.4246}, {"Date": "MARTEDÌ 26 MAGGIO 2026", "Home": "St Etienne", "Away": "Nice", "Home_orig": "Saint-Étienne", "Away_orig": "Nizza", "Campionato": "Ligue 1", "Match_ID": "20260526_SAINT__TIENN_NIZZA", "Odd1": 2.2, "OddX": 3.55, "Odd2": 3.0, "Odd_OV25": 1.62, "Odd_UN25": 2.15, "Odd_GG": 1.53, "Odd_NG": 2.35, "lam_h": 1.728, "lam_a": 1.7442, "Prob1": 0.384772, "ProbX": 0.223787, "Prob2": 0.391441, "Prob_OV25": 0.673979, "Prob_UN25": 0.326, "Prob_GG": 0.678624, "Prob_NG": 0.3214, "Decision": "BET", "REASON": "BET", "TipoScommessa": "OV2.5", "Odds_Bet": 1.62, "Value_Max": 0.0918, "EV": 0.0918, "Kelly": 0.037, "Confidence": 0.55, "Stake": 37.0, "lam_tot": 3.4722, "_modello": "modello", "mu_H": 1.312, "mu_A": 1.102, "RISK_FLAG": "OK", "AQ_FILTRATO": 0.0918, "Value1": -0.1535, "ValueX": -0.2056, "Value2": 0.1743, "Value_OV25": 0.0918, "Value_UN25": -0.2991, "Value_GG": 0.0383, "Value_NG": -0.2447, "Prob_sel": 0.673979}, {"Date": "MARTEDÌ 26 MAGGIO 2026", "Home": "Greuther Fürth", "Away": "Rot Weiss Essen", "Home_orig": "Greuther Fürth", "Away_orig": "Rot Weiss Essen", "Campionato": "Bundesliga 2", "Match_ID": "20260526_GREUTHER_F_R_ROT_WEISS_ES", "Odd1": 1.73, "OddX": 4.2, "Odd2": 3.95, "Odd_OV25": 1.62, "Odd_UN25": 2.15, "Odd_GG": 1.65, "Odd_NG": 2.15, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.45, "mu_A": 1.2, "Confidence": 0.3, "Value_Max": 0.2037, "TipoScommessa": "2", "Odds_Bet": 3.95, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_Bundesliga_2_no_Rot", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.2654, "ValueX": 0.1365, "Value2": 0.2036, "Value_OV25": -0.2819, "Value_UN25": 0.1969, "Value_GG": -0.1846, "Value_NG": 0.0875, "Prob_sel": 0.3047}, {"Date": "VENERDÌ 29 MAGGIO 2026", "Home": "Liaoning Tieren", "Away": "Shanghai Port", "Home_orig": "Liaoning Tieren", "Away_orig": "Shanghai Port", "Campionato": "CINA", "Match_ID": "20260529_LIAONING_TIE_SHANGHAI_POR", "Odd1": 2.3, "OddX": 3.65, "Odd2": 2.6, "Odd_OV25": 1.58, "Odd_UN25": 2.2, "Odd_GG": 1.5, "Odd_NG": 2.3, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": null, "TipoScommessa": null, "Odds_Bet": null, "Kelly": null, "Stake": null, "Decision": "SKIP", "REASON": "stima_media_CINA_no_Liaoning_no_Shanghai", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.0234, "ValueX": -0.0123, "Value2": -0.2078, "Value_OV25": -0.2996, "Value_UN25": 0.2247, "Value_GG": -0.2587, "Value_NG": 0.1633, "Prob_sel": null}, {"Date": "VENERDÌ 29 MAGGIO 2026", "Home": "Monza", "Away": "Catanzaro", "Home_orig": "Monza", "Away_orig": "Catanzaro", "Campionato": "Serie B", "Match_ID": "20260529_MONZA_CATANZARO", "Odd1": 1.63, "OddX": 4.1, "Odd2": 4.75, "Odd_OV25": 1.65, "Odd_UN25": 2.1, "Odd_GG": 1.68, "Odd_NG": 2.05, "lam_h": 2.027, "lam_a": 1.0177, "Prob1": 0.607183, "ProbX": 0.209716, "Prob2": 0.183101, "Prob_OV25": 0.586746, "Prob_UN25": 0.4133, "Prob_GG": 0.554454, "Prob_NG": 0.4455, "Decision": "SKIP", "REASON": "value -1.0%<5%,kelly 0.00%<3%", "TipoScommessa": "1", "Odds_Bet": 1.63, "Value_Max": -0.0103, "EV": -0.0103, "Kelly": 0.0, "Confidence": 0.9411, "Stake": 0, "lam_tot": 3.0447, "_modello": "modello", "mu_H": 1.298, "mu_A": 1.097, "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.0103, "ValueX": -0.1402, "Value2": -0.1303, "Value_OV25": -0.0319, "Value_UN25": -0.1321, "Value_GG": -0.0685, "Value_NG": -0.0867, "Prob_sel": 0.607183}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "QINGDAO ZHONG. HENGTAI", "Away": "Shanghai Shenhua", "Home_orig": "QINGDAO ZHONG. HENGTAI", "Away_orig": "Shanghai Shenhua", "Campionato": "CINA", "Match_ID": "20260530_QINGDAO_ZHON_SHANGHAI_SHE", "Odd1": 2.25, "OddX": 3.35, "Odd2": 2.9, "Odd_OV25": 1.65, "Odd_UN25": 2.1, "Odd_GG": 1.52, "Odd_NG": 2.25, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": null, "TipoScommessa": null, "Odds_Bet": null, "Kelly": null, "Stake": null, "Decision": "SKIP", "REASON": "stima_media_CINA_no_QINGDAO_no_Shanghai", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.0447, "ValueX": -0.0935, "Value2": -0.1164, "Value_OV25": -0.2686, "Value_UN25": 0.1691, "Value_GG": -0.2488, "Value_NG": 0.1381, "Prob_sel": null}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Henan Songshan Longmen", "Away": "Zhejiang Greentown FC", "Home_orig": "Henan Songshan Longmen", "Away_orig": "Zhejiang Greentown FC", "Campionato": "CINA", "Match_ID": "20260530_HENAN_SONGSH_ZHEJIANG_GRE", "Odd1": 2.0, "OddX": 3.45, "Odd2": 3.35, "Odd_OV25": 1.65, "Odd_UN25": 2.1, "Odd_GG": 1.55, "Odd_NG": 2.2, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": null, "TipoScommessa": null, "Odds_Bet": null, "Kelly": null, "Stake": null, "Decision": "SKIP", "REASON": "stima_media_CINA_no_Henan_no_Zhejiang", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.1508, "ValueX": -0.0664, "Value2": 0.0207, "Value_OV25": -0.2686, "Value_UN25": 0.1691, "Value_GG": -0.234, "Value_NG": 0.1128, "Prob_sel": null}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Chengdu Rongcheng", "Away": "Shandong Taishan", "Home_orig": "Chengdu Rongcheng", "Away_orig": "Shandong Taishan", "Campionato": "CINA", "Match_ID": "20260530_CHENGDU_RONG_SHANDONG_TAI", "Odd1": 1.95, "OddX": 3.85, "Odd2": 3.2, "Odd_OV25": 1.4, "Odd_UN25": 2.7, "Odd_GG": 1.37, "Odd_NG": 2.7, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": null, "TipoScommessa": null, "Odds_Bet": null, "Kelly": null, "Stake": null, "Decision": "SKIP", "REASON": "stima_media_CINA_no_Chengdu_no_Shandong", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.172, "ValueX": 0.0418, "Value2": -0.025, "Value_OV25": -0.3794, "Value_UN25": 0.5031, "Value_GG": -0.3229, "Value_NG": 0.3657, "Prob_sel": null}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Chongqing Tonglianglong FC", "Away": "Beijing Guoan", "Home_orig": "Chongqing Tonglianglong FC", "Away_orig": "Beijing Guoan", "Campionato": "CINA", "Match_ID": "20260530_CHONGQING_TO_BEIJING_GUOA", "Odd1": 3.5, "OddX": 3.35, "Odd2": 2.0, "Odd_OV25": 1.82, "Odd_UN25": 1.87, "Odd_GG": 1.67, "Odd_NG": 2.0, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.4862, "TipoScommessa": "1", "Odds_Bet": 3.5, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_CINA_no_Chongqing_no_Beijing", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.4861, "ValueX": -0.0935, "Value2": -0.3906, "Value_OV25": -0.1932, "Value_UN25": 0.041, "Value_GG": -0.1747, "Value_NG": 0.0116, "Prob_sel": 0.4246}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Sichuan Jiuniu", "Away": "Qingdao Hainiu FC", "Home_orig": "Sichuan Jiuniu", "Away_orig": "Qingdao Hainiu FC", "Campionato": "CINA", "Match_ID": "20260530_SICHUAN_JIUN_QINGDAO_HAIN", "Odd1": 2.1, "OddX": 3.3, "Odd2": 3.2, "Odd_OV25": 1.85, "Odd_UN25": 1.82, "Odd_GG": 1.7, "Odd_NG": 1.97, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": null, "TipoScommessa": null, "Odds_Bet": null, "Kelly": null, "Stake": null, "Decision": "SKIP", "REASON": "stima_media_CINA_no_Sichuan_no_Qingdao", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.1083, "ValueX": -0.107, "Value2": -0.025, "Value_OV25": -0.1799, "Value_UN25": 0.0132, "Value_GG": -0.1599, "Value_NG": -0.0036, "Prob_sel": null}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "HJK Helsinki", "Away": "IFK Mariehamn", "Home_orig": "HJK Helsinki", "Away_orig": "IFK Mariehamn", "Campionato": "FINLANDIA", "Match_ID": "20260530_HJK_HELSINKI_IFK_MARIEHAM", "Odd1": 1.18, "OddX": 6.5, "Odd2": 11.0, "Odd_OV25": 1.43, "Odd_UN25": 2.6, "Odd_GG": 1.97, "Odd_NG": 1.68, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 2.3522, "TipoScommessa": "2", "Odds_Bet": 11.0, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_FINLANDIA_no_HJK_no_IFK", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.499, "ValueX": 0.7589, "Value2": 2.3517, "Value_OV25": -0.3661, "Value_UN25": 0.4474, "Value_GG": -0.0264, "Value_NG": -0.1503, "Prob_sel": 0.3047}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "IF Gnistan", "Away": "Seinajoen", "Home_orig": "IF Gnistan", "Away_orig": "Seinajoen", "Campionato": "FINLANDIA", "Match_ID": "20260530_IF_GNISTAN_SEINAJOEN", "Odd1": 2.65, "OddX": 3.4, "Odd2": 2.4, "Odd_OV25": 1.67, "Odd_UN25": 2.05, "Odd_GG": 1.55, "Odd_NG": 2.2, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.1252, "TipoScommessa": "1", "Odds_Bet": 2.65, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_FINLANDIA_no_IF_no_Seinajoen", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.1252, "ValueX": -0.08, "Value2": -0.2687, "Value_OV25": -0.2597, "Value_UN25": 0.1412, "Value_GG": -0.234, "Value_NG": 0.1128, "Prob_sel": 0.4246}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Kuopion Palloseura", "Away": "Inter Turku", "Home_orig": "Kuopion Palloseura", "Away_orig": "Inter Turku", "Campionato": "FINLANDIA", "Match_ID": "20260530_KUOPION_PALL_INTER_TURKU", "Odd1": 2.45, "OddX": 3.1, "Odd2": 2.8, "Odd_OV25": 2.05, "Odd_UN25": 1.68, "Odd_GG": 1.78, "Odd_NG": 1.85, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.0403, "TipoScommessa": "1", "Odds_Bet": 2.45, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_FINLANDIA_no_Kuopion_no_Inter", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.0403, "ValueX": -0.1611, "Value2": -0.1468, "Value_OV25": -0.0912, "Value_UN25": -0.0647, "Value_GG": -0.1203, "Value_NG": -0.0643, "Prob_sel": 0.4246}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Turun Palloseura", "Away": "Vaasan", "Home_orig": "Turun Palloseura", "Away_orig": "Vaasan", "Campionato": "FINLANDIA", "Match_ID": "20260530_TURUN_PALLOS_VAASAN", "Odd1": 2.8, "OddX": 3.2, "Odd2": 2.4, "Odd_OV25": 1.88, "Odd_UN25": 1.8, "Odd_GG": 1.68, "Odd_NG": 1.98, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.1889, "TipoScommessa": "1", "Odds_Bet": 2.8, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_FINLANDIA_no_Turun_no_Vaasan", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.1889, "ValueX": -0.1341, "Value2": -0.2687, "Value_OV25": -0.1666, "Value_UN25": 0.0021, "Value_GG": -0.1697, "Value_NG": 0.0015, "Prob_sel": 0.4246}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Lahti", "Away": "Ilves Tampere", "Home_orig": "Lahti", "Away_orig": "Ilves Tampere", "Campionato": "FINLANDIA", "Match_ID": "20260530_LAHTI_ILVES_TAMPER", "Odd1": 2.5, "OddX": 3.2, "Odd2": 2.65, "Odd_OV25": 2.0, "Odd_UN25": 1.7, "Odd_GG": 1.75, "Odd_NG": 1.88, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.0615, "TipoScommessa": "1", "Odds_Bet": 2.5, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_FINLANDIA_no_Lahti_no_Ilves", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.0615, "ValueX": -0.1341, "Value2": -0.1925, "Value_OV25": -0.1134, "Value_UN25": -0.0536, "Value_GG": -0.1352, "Value_NG": -0.0491, "Prob_sel": 0.4246}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Ceuta", "Away": "Albacete", "Home_orig": "AD Ceuta", "Away_orig": "Albacete", "Campionato": "La Liga 2", "Match_ID": "20260530_AD_CEUTA_ALBACETE", "Odd1": 2.4, "OddX": 3.3, "Odd2": 2.65, "Odd_OV25": 1.65, "Odd_UN25": 2.05, "Odd_GG": 1.52, "Odd_NG": 2.25, "lam_h": 0.7347, "lam_a": 1.3846, "Prob1": 0.198577, "ProbX": 0.277125, "Prob2": 0.524298, "Prob_OV25": 0.355577, "Prob_UN25": 0.6444, "Prob_GG": 0.390043, "Prob_NG": 0.61, "Decision": "BET", "REASON": "BET", "TipoScommessa": "2", "Odds_Bet": 2.65, "Value_Max": 0.3894, "EV": 0.3894, "Kelly": 0.059, "Confidence": 0.6754, "Stake": 59.0, "lam_tot": 2.1193, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": 0.3894, "Value1": -0.5234, "ValueX": -0.0855, "Value2": 0.3894, "Value_OV25": -0.4133, "Value_UN25": 0.321, "Value_GG": -0.4071, "Value_NG": 0.3725, "Prob_sel": 0.524298}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Granada", "Away": "Sporting Gijón", "Home_orig": "Granada", "Away_orig": "Sporting Gijón", "Campionato": "La Liga 2", "Match_ID": "20260530_GRANADA_SPORTING_GIJ", "Odd1": 2.25, "OddX": 3.25, "Odd2": 2.85, "Odd_OV25": 1.82, "Odd_UN25": 1.85, "Odd_GG": 1.65, "Odd_NG": 2.0, "lam_h": 1.38, "lam_a": 1.09, "lam_tot": 2.47, "Prob1": 0.435, "ProbX": 0.2685, "Prob2": 0.2966, "Prob_OV25": 0.4485, "Prob_UN25": 0.5515, "Prob_GG": 0.4968, "Prob_NG": 0.5032, "mu_H": 1.38, "mu_A": 1.09, "Confidence": 0.3, "Value_Max": null, "TipoScommessa": null, "Odds_Bet": null, "Kelly": null, "Stake": null, "Decision": "SKIP", "REASON": "stima_media_La_Liga_2_no_Sporting", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.0212, "ValueX": -0.1274, "Value2": -0.1547, "Value_OV25": -0.1837, "Value_UN25": 0.0203, "Value_GG": -0.1803, "Value_NG": 0.0064, "Prob_sel": null}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "AIK", "Away": "Sirius", "Home_orig": "AIK", "Away_orig": "Sirius", "Campionato": "SVEZIA", "Match_ID": "20260530_AIK_SIRIUS", "Odd1": 3.0, "OddX": 3.75, "Odd2": 2.1, "Odd_OV25": 1.6, "Odd_UN25": 2.2, "Odd_GG": 1.55, "Odd_NG": 2.3, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.2739, "TipoScommessa": "1", "Odds_Bet": 3.0, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_SVEZIA_no_AIK_no_Sirius", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.2738, "ValueX": 0.0148, "Value2": -0.3601, "Value_OV25": -0.2907, "Value_UN25": 0.2247, "Value_GG": -0.234, "Value_NG": 0.1633, "Prob_sel": 0.4246}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Gais Goteborg", "Away": "Kalmar FF", "Home_orig": "Gais Goteborg", "Away_orig": "Kalmar FF", "Campionato": "SVEZIA", "Match_ID": "20260530_GAIS_GOTEBOR_KALMAR_FF", "Odd1": 1.78, "OddX": 3.55, "Odd2": 4.2, "Odd_OV25": 1.88, "Odd_UN25": 1.83, "Odd_GG": 1.8, "Odd_NG": 1.9, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.2799, "TipoScommessa": "2", "Odds_Bet": 4.2, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_SVEZIA_no_Gais_no_Kalmar", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.2442, "ValueX": -0.0394, "Value2": 0.2797, "Value_OV25": -0.1666, "Value_UN25": 0.0188, "Value_GG": -0.1104, "Value_NG": -0.039, "Prob_sel": 0.3047}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Malmoe", "Away": "Halmstads", "Home_orig": "Malmoe", "Away_orig": "Halmstads", "Campionato": "SVEZIA", "Match_ID": "20260530_MALMOE_HALMSTADS", "Odd1": 1.5, "OddX": 4.2, "Odd2": 5.75, "Odd_OV25": 1.75, "Odd_UN25": 2.0, "Odd_GG": 1.85, "Odd_NG": 1.85, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.7523, "TipoScommessa": "2", "Odds_Bet": 5.75, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_SVEZIA_no_Malmoe_no_Halmstads", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.3631, "ValueX": 0.1365, "Value2": 0.752, "Value_OV25": -0.2242, "Value_UN25": 0.1134, "Value_GG": -0.0857, "Value_NG": -0.0643, "Prob_sel": 0.3047}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Tianjin Tigers", "Away": "Dalian Zhixing FC", "Home_orig": "Tianjin Tigers", "Away_orig": "Dalian Zhixing FC", "Campionato": "CINA", "Match_ID": "20260531_TIANJIN_TIGE_DALIAN_ZHIXI", "Odd1": 2.95, "OddX": 3.05, "Odd2": 2.35, "Odd_OV25": 2.05, "Odd_UN25": 1.68, "Odd_GG": 1.78, "Odd_NG": 1.85, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.2526, "TipoScommessa": "1", "Odds_Bet": 2.95, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_CINA_no_Tianjin_no_Dalian", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.2526, "ValueX": -0.1747, "Value2": -0.284, "Value_OV25": -0.0912, "Value_UN25": -0.0647, "Value_GG": -0.1203, "Value_NG": -0.0643, "Prob_sel": 0.4246}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Wuhan Three Towns", "Away": "Yunnan Yukun", "Home_orig": "Wuhan Three Towns", "Away_orig": "Yunnan Yukun", "Campionato": "CINA", "Match_ID": "20260531_WUHAN_THREE_YUNNAN_YUKUN", "Odd1": 2.55, "OddX": 3.4, "Odd2": 2.5, "Odd_OV25": 1.55, "Odd_UN25": 2.25, "Odd_GG": 1.45, "Odd_NG": 2.45, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.0828, "TipoScommessa": "1", "Odds_Bet": 2.55, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_CINA_no_Wuhan_no_Yunnan", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.0827, "ValueX": -0.08, "Value2": -0.2382, "Value_OV25": -0.3129, "Value_UN25": 0.2526, "Value_GG": -0.2834, "Value_NG": 0.2392, "Prob_sel": 0.4246}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Oulu", "Away": "Jaro", "Home_orig": "Oulu", "Away_orig": "Jaro", "Campionato": "FINLANDIA", "Match_ID": "20260531_OULU_JARO", "Odd1": 1.52, "OddX": 4.05, "Odd2": 5.25, "Odd_OV25": 1.73, "Odd_UN25": 1.97, "Odd_GG": 1.8, "Odd_NG": 1.85, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.5999, "TipoScommessa": "2", "Odds_Bet": 5.25, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_FINLANDIA_no_Oulu_no_Jaro", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.3546, "ValueX": 0.0959, "Value2": 0.5997, "Value_OV25": -0.2331, "Value_UN25": 0.0967, "Value_GG": -0.1104, "Value_NG": -0.0643, "Prob_sel": 0.3047}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Castellon", "Away": "Eibar", "Home_orig": "Castellon", "Away_orig": "Eibar", "Campionato": "La Liga 2", "Match_ID": "20260531_CASTELLON_EIBAR", "Odd1": 1.5, "OddX": 4.2, "Odd2": 5.0, "Odd_OV25": 1.53, "Odd_UN25": 2.25, "Odd_GG": 1.62, "Odd_NG": 2.05, "lam_h": 0.9441, "lam_a": 0.816, "Prob1": 0.369106, "ProbX": 0.332373, "Prob2": 0.298521, "Prob_OV25": 0.25872, "Prob_UN25": 0.7413, "Prob_GG": 0.340801, "Prob_NG": 0.6592, "Decision": "BET", "REASON": "BET", "TipoScommessa": "UN2.5", "Odds_Bet": 2.25, "Value_Max": 0.6679, "EV": 0.6679, "Kelly": 0.1336, "Confidence": 0.55, "Stake": 133.6, "lam_tot": 1.7601, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": 0.6679, "Value1": -0.4463, "ValueX": 0.396, "Value2": 0.4926, "Value_OV25": -0.6042, "Value_UN25": 0.6679, "Value_GG": -0.4479, "Value_NG": 0.3514, "Prob_sel": 0.7413}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Zaragoza", "Away": "Malaga", "Home_orig": "Real Saragozza", "Away_orig": "Malaga", "Campionato": "La Liga 2", "Match_ID": "20260531_REAL_SARAGOZ_MALAGA", "Odd1": 3.7, "OddX": 3.75, "Odd2": 1.78, "Odd_OV25": 1.73, "Odd_UN25": 1.95, "Odd_GG": 1.67, "Odd_NG": 1.98, "lam_h": 0.9702, "lam_a": 2.4199, "Prob1": 0.1333, "ProbX": 0.173366, "Prob2": 0.693335, "Prob_OV25": 0.658331, "Prob_UN25": 0.3417, "Prob_GG": 0.565765, "Prob_NG": 0.4342, "Decision": "BET", "REASON": "BET", "TipoScommessa": "2", "Odds_Bet": 1.78, "Value_Max": 0.2341, "EV": 0.2341, "Kelly": 0.075, "Confidence": 0.6724, "Stake": 75.0, "lam_tot": 3.3901, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": 0.2341, "Value1": -0.5068, "ValueX": -0.3499, "Value2": 0.2341, "Value_OV25": 0.1389, "Value_UN25": -0.3337, "Value_GG": -0.0552, "Value_NG": -0.1403, "Prob_sel": 0.693335}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Santander", "Away": "Cadiz", "Home_orig": "Racing Santander", "Away_orig": "Cadice", "Campionato": "La Liga 2", "Match_ID": "20260531_RACING_SANTA_CADICE", "Odd1": 1.32, "OddX": 5.0, "Odd2": 7.0, "Odd_OV25": 1.38, "Odd_UN25": 2.7, "Odd_GG": 1.6, "Odd_NG": 2.1, "lam_h": 3.0699, "lam_a": 1.1404, "Prob1": 0.757629, "ProbX": 0.134487, "Prob2": 0.107885, "Prob_OV25": 0.791047, "Prob_UN25": 0.209, "Prob_GG": 0.648714, "Prob_NG": 0.3513, "Decision": "WATCH", "REASON": "WATCH", "TipoScommessa": "GG", "Odds_Bet": 1.6, "Value_Max": 0.0379, "EV": 0.0379, "Kelly": 0.0158, "Confidence": 0.55, "Stake": 15.8, "lam_tot": 4.2103, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "RISK", "AQ_FILTRATO": null, "Value1": 0.0001, "ValueX": -0.3276, "Value2": -0.2448, "Value_OV25": 0.0916, "Value_UN25": -0.4357, "Value_GG": 0.0379, "Value_NG": -0.2623, "Prob_sel": 0.648714}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Sociedad B", "Away": "Cultural Leonesa", "Home_orig": "Real Sociedad B", "Away_orig": "Cultural Leonesa", "Campionato": "La Liga 2", "Match_ID": "20260531_REAL_SOCIEDA_CULTURAL_LEO", "Odd1": 2.15, "OddX": 3.35, "Odd2": 2.95, "Odd_OV25": 1.7, "Odd_UN25": 2.0, "Odd_GG": 1.57, "Odd_NG": 2.15, "lam_h": 1.4168, "lam_a": 1.1304, "Prob1": 0.435562, "ProbX": 0.263802, "Prob2": 0.300636, "Prob_OV25": 0.468236, "Prob_UN25": 0.5318, "Prob_GG": 0.512908, "Prob_NG": 0.4871, "Decision": "WATCH", "REASON": "WATCH", "TipoScommessa": "UN2.5", "Odds_Bet": 2.0, "Value_Max": 0.0636, "EV": 0.0636, "Kelly": 0.0159, "Confidence": 0.55, "Stake": 15.9, "lam_tot": 2.5472, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.0635, "ValueX": -0.1163, "Value2": -0.1131, "Value_OV25": -0.204, "Value_UN25": 0.0636, "Value_GG": -0.1947, "Value_NG": 0.0473, "Prob_sel": 0.5318}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "La Coruna", "Away": "Las Palmas", "Home_orig": "Deportivo La Coruña", "Away_orig": "UD Las Palmas", "Campionato": "La Liga 2", "Match_ID": "20260531_DEPORTIVO_LA_UD_LAS_PALMA", "Odd1": 2.75, "OddX": 3.2, "Odd2": 2.35, "Odd_OV25": 1.9, "Odd_UN25": 1.75, "Odd_GG": 1.7, "Odd_NG": 1.93, "lam_h": 1.8001, "lam_a": 1.0287, "Prob1": 0.554581, "ProbX": 0.230865, "Prob2": 0.214554, "Prob_OV25": 0.537382, "Prob_UN25": 0.4626, "Prob_GG": 0.53633, "Prob_NG": 0.4637, "Decision": "BET", "REASON": "BET", "TipoScommessa": "1", "Odds_Bet": 2.75, "Value_Max": 0.5251, "EV": 0.5251, "Kelly": 0.075, "Confidence": 0.5959, "Stake": 75.0, "lam_tot": 2.8288, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": 0.5251, "Value1": 0.5251, "ValueX": -0.2612, "Value2": -0.4958, "Value_OV25": 0.021, "Value_UN25": -0.1905, "Value_GG": -0.0882, "Value_NG": -0.1051, "Prob_sel": 0.554581}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Leganes", "Away": "Mirandes", "Home_orig": "Leganes", "Away_orig": "CD Mirandes", "Campionato": "La Liga 2", "Match_ID": "20260531_LEGANES_CD_MIRANDES", "Odd1": 1.88, "OddX": 3.45, "Odd2": 3.6, "Odd_OV25": 1.73, "Odd_UN25": 1.95, "Odd_GG": 1.63, "Odd_NG": 2.05, "lam_h": 1.57, "lam_a": 1.3556, "Prob1": 0.425116, "ProbX": 0.244957, "Prob2": 0.329927, "Prob_OV25": 0.559936, "Prob_UN25": 0.4401, "Prob_GG": 0.587795, "Prob_NG": 0.4122, "Decision": "WATCH", "REASON": "WATCH", "TipoScommessa": "2", "Odds_Bet": 3.6, "Value_Max": 0.1877, "EV": 0.1877, "Kelly": 0.0181, "Confidence": 0.8609, "Stake": 18.1, "lam_tot": 2.9256, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.2008, "ValueX": -0.1549, "Value2": 0.1877, "Value_OV25": -0.0313, "Value_UN25": -0.1418, "Value_GG": -0.0419, "Value_NG": -0.155, "Prob_sel": 0.329927}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Burgos", "Away": "Andorra", "Home_orig": "Burgos CF", "Away_orig": "FC Andorra", "Campionato": "La Liga 2", "Match_ID": "20260531_BURGOS_CF_FC_ANDORRA", "Odd1": 1.48, "OddX": 3.95, "Odd2": 5.75, "Odd_OV25": 1.87, "Odd_UN25": 1.78, "Odd_GG": 1.98, "Odd_NG": 1.67, "lam_h": 0.9371, "lam_a": 0.7705, "Prob1": 0.377512, "ProbX": 0.337819, "Prob2": 0.284669, "Prob_OV25": 0.244784, "Prob_UN25": 0.7552, "Prob_GG": 0.326756, "Prob_NG": 0.6732, "Decision": "BET", "REASON": "BET", "TipoScommessa": "2", "Odds_Bet": 5.75, "Value_Max": 0.6368, "EV": 0.6368, "Kelly": 0.0335, "Confidence": 0.7715, "Stake": 33.5, "lam_tot": 1.7076, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": 0.6368, "Value1": -0.4413, "ValueX": 0.3344, "Value2": 0.6368, "Value_OV25": -0.5423, "Value_UN25": 0.3443, "Value_GG": -0.353, "Value_NG": 0.1242, "Prob_sel": 0.284669}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Cordoba", "Away": "Huesca", "Home_orig": "Cordoba CF", "Away_orig": "Huesca", "Campionato": "La Liga 2", "Match_ID": "20260531_CORDOBA_CF_HUESCA", "Odd1": 1.55, "OddX": 4.15, "Odd2": 4.7, "Odd_OV25": 1.65, "Odd_UN25": 2.05, "Odd_GG": 1.7, "Odd_NG": 1.93, "lam_h": 1.8988, "lam_a": 1.1209, "Prob1": 0.55514, "ProbX": 0.222968, "Prob2": 0.221892, "Prob_OV25": 0.581207, "Prob_UN25": 0.4188, "Prob_GG": 0.573081, "Prob_NG": 0.4269, "Decision": "WATCH", "REASON": "WATCH", "TipoScommessa": "2", "Odds_Bet": 4.7, "Value_Max": 0.0429, "EV": 0.0429, "Kelly": 0.0029, "Confidence": 0.9491, "Stake": 2.9, "lam_tot": 3.0197, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.1395, "ValueX": -0.0747, "Value2": 0.0429, "Value_OV25": -0.041, "Value_UN25": -0.1415, "Value_GG": -0.0258, "Value_NG": -0.1761, "Prob_sel": 0.221892}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Almeria", "Away": "Valladolid", "Home_orig": "Almería", "Away_orig": "Real Valladolid", "Campionato": "La Liga 2", "Match_ID": "20260531_ALMER_A_REAL_VALLADO", "Odd1": 1.4, "OddX": 4.4, "Odd2": 6.0, "Odd_OV25": 1.55, "Odd_UN25": 2.25, "Odd_GG": 1.7, "Odd_NG": 1.93, "lam_h": 3.6717, "lam_a": 1.2769, "Prob1": 0.806037, "ProbX": 0.10702, "Prob2": 0.086943, "Prob_OV25": 0.87076, "Prob_UN25": 0.1292, "Prob_GG": 0.702732, "Prob_NG": 0.2973, "Decision": "BET", "REASON": "BET", "TipoScommessa": "1", "Odds_Bet": 1.4, "Value_Max": 0.1285, "EV": 0.1285, "Kelly": 0.0803, "Confidence": 0.6978, "Stake": 80.3, "lam_tot": 4.9486, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "RISK", "AQ_FILTRATO": 0.1285, "Value1": 0.1285, "ValueX": -0.5291, "Value2": -0.4783, "Value_OV25": 0.3497, "Value_UN25": -0.7093, "Value_GG": 0.1946, "Value_NG": -0.4262, "Prob_sel": 0.806037}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Degerfors", "Away": "Brommapojkarna", "Home_orig": "Degerfors", "Away_orig": "Brommapojkarna", "Campionato": "SVEZIA", "Match_ID": "20260531_DEGERFORS_BROMMAPOJKAR", "Odd1": 2.3, "OddX": 3.1, "Odd2": 3.05, "Odd_OV25": 2.0, "Odd_UN25": 1.7, "Odd_GG": 1.8, "Odd_NG": 1.92, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": null, "TipoScommessa": null, "Odds_Bet": null, "Kelly": null, "Stake": null, "Decision": "SKIP", "REASON": "stima_media_SVEZIA_no_Degerfors_no_Brommapojkarna", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.0234, "ValueX": -0.1611, "Value2": -0.0707, "Value_OV25": -0.1134, "Value_UN25": -0.0536, "Value_GG": -0.1104, "Value_NG": -0.0289, "Prob_sel": null}];
-var DATA_TIMESTAMP = "25/05/2026 22:22";
-let DATA=[],cf='',vo=false,bo=false;
-const LC={'Serie A':'#4a9eff','Serie B':'#00d4aa','Serie C':'#f7b731','Premier League':'#a855f7','La Liga':'#e74c5e','La Liga 2':'#f97316','Bundesliga':'#f97316','Bundesliga 2':'#f59e0b','Ligue 1':'#06b6d4','Eredivisie':'#10b981','Jupiler Pro':'#4a9eff','Super Lig':'#e74c5e','Primeira Liga':'#22c55e'};
-function pd(s){if(!s)return'';if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);const M={GENNAIO:'01',FEBBRAIO:'02',MARZO:'03',APRILE:'04',MAGGIO:'05',GIUGNO:'06',LUGLIO:'07',AGOSTO:'08',SETTEMBRE:'09',OTTOBRE:'10',NOVEMBRE:'11',DICEMBRE:'12'};let x=s.toUpperCase().trim().replace(/\b(202)\b(?!\d)/g,'2026');const p=x.split(/\s+/);let g,m,a;if(p.length>=4){g=p[1];m=M[p[2]]||'01';a=p[3];}else if(p.length>=3){g=p[0];m=M[p[1]]||'01';a=p[2];}else return s;if(a&&a.length===3)a+='6';if(!a||a.length<4)a=new Date().getFullYear().toString();return`${a}-${m}-${g.padStart(2,'0')}`;}
-function nc(c){const MP={BELGIO:'Jupiler Pro',TURCHIA:'Super Lig',PORTOGALLO:'Primeira Liga',ITALIA:'Serie A',INGHILTERRA:'Premier League',SPAGNA:'La Liga',GERMANIA:'Bundesliga',FRANCIA:'Ligue 1',OLANDA:'Eredivisie','PAESI BASSI':'Eredivisie'};return MP[(c||'').toUpperCase()]||c;}
-function ar(m){const v1=m.Value1!=null?parseFloat(m.Value1):null,vx=m.ValueX!=null?parseFloat(m.ValueX):null,v2=m.Value2!=null?parseFloat(m.Value2):null;const p1=m.Prob1!=null?parseFloat(m.Prob1):null,px=m.ProbX!=null?parseFloat(m.ProbX):null,p2=m.Prob2!=null?parseFloat(m.Prob2):null;const lh=m.lam_h!=null?parseFloat(m.lam_h):null,la=m.lam_a!=null?parseFloat(m.lam_a):null;let dec=(m.Decision||'').replace('—','').trim();if(!dec){const vm=Math.max(v1||0,vx||0,v2||0);dec=vm>0.05?'BET':vm>0?'WATCH':'SKIP';}
-const camp=m.Campionato_AS||m.Campionato||'';
-const league=camp&&camp!==''?camp:nc(m.Campionato||'');
-return{id:m.Match_ID||(m.Home+'_'+m.Away),home:m.Home||'',away:m.Away||'',league:league,date:pd(m.Date||''),o1:parseFloat(m.Odd1)||0,ox:parseFloat(m.OddX)||0,o2:parseFloat(m.Odd2)||0,p1,px,p2,lh,la,v1,vx,v2,dec,conf:parseFloat(m.Confidence)||0,kelly:parseFloat(m.Kelly)||0,stake:parseFloat(m.Stake)||0,ov25:parseFloat(m.Prob_OV25)||null,gg:parseFloat(m.Prob_GG)||null};}
-function ou(lh,la){if(!lh||!la)return null;const t=lh+la;return{ov05:1-Math.exp(-t),ov15:1-Math.exp(-t)*(1+t),ov25:1-Math.exp(-t)*(1+t+t*t/2),ov35:1-Math.exp(-t)*(1+t+t*t/2+Math.pow(t,3)/6),gg:(1-Math.exp(-lh))*(1-Math.exp(-la))};}
-const pct=v=>(v!=null&&!isNaN(v))?(v*100).toFixed(1)+'%':'—';
-const fair=p=>(p!=null&&!isNaN(p)&&p>0.01)?(1/p).toFixed(2):'—';
-const odd=v=>(v&&v>1)?v.toFixed(2):'—';
-const vbadge=(v,c=false)=>{if(v==null)return'';const cls=v>0?'pos':'neg',sg=v>0?'+':'';const lb=`${sg}${(v*100).toFixed(1)}%`;return c?`<span class="vb ${cls}">${lb}</span>`:`<span class="ovbp ${cls}">${lb}</span>`;};
 
-const LEAGUE_CFG=[
-  {key:'Serie A',lbl:'Serie A'},{key:'Serie B',lbl:'Serie B'},
-  {key:'Premier League',lbl:'Premier'},{key:'Championship',lbl:'Championship'},
-  {key:'La Liga',lbl:'La Liga'},{key:'La Liga 2',lbl:'Liga 2'},
-  {key:'Bundesliga',lbl:'Bundesliga'},{key:'Bundesliga 2',lbl:'BL2'},
-  {key:'Ligue 1',lbl:'Ligue 1'},{key:'Eredivisie',lbl:'Olanda'},
-  {key:'Jupiler Pro',lbl:'Belgio'},{key:'Super Lig',lbl:'Turchia'},
-  {key:'Primeira Liga',lbl:'Portogallo'},
-];
-function buildChips(){
-  const counts={};
-  (window.LIVE_DATA||[]).forEach(r=>{const c=r.Campionato||'';counts[c]=(counts[c]||0)+1;});
-  const fb=document.getElementById('fb');
-  if(!fb)return;
-  // rimuovi chip campionato precedenti (non vc, non bc, non chip-all-m)
-  fb.querySelectorAll('.chip:not(.vc):not(.bc):not(#chip-all-m)').forEach(b=>b.remove());
-  const vcBtn=fb.querySelector('.vc');
-  const total=(window.LIVE_DATA||[]).length;
-  const chipAll=document.getElementById('chip-all-m');
-  if(chipAll)chipAll.textContent='Tutti ('+total+')';
-  LEAGUE_CFG.forEach(cfg=>{
-    const n=counts[cfg.key]||0;
-    if(n===0)return;
-    const btn=document.createElement('button');
-    btn.className='chip';
-    btn.textContent=cfg.lbl+' ('+n+')';
-    btn.dataset.league=cfg.key;
-    btn.onclick=function(){sf(cfg.key,btn);};
-    fb.insertBefore(btn,vcBtn);
-  });
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo">PROGETTO<span> PRO</span></div>
+    <div class="ts" id="ts">—</div>
+  </div>
+  <div class="kpi-bar">
+    <div class="kpi-pill" id="kpi-tot">📊 <b id="n-tot">—</b> partite</div>
+    <div class="kpi-pill bet-pill" id="kpi-bet">🎯 <b id="n-bet">—</b> BET</div>
+    <div class="kpi-pill watch-pill" id="kpi-watch">👁 <b id="n-watch">—</b> WATCH</div>
+  </div>
+</div>
+
+<!-- FILTRI -->
+<div class="filters" id="filters">
+  <button class="filter-btn active" onclick="setFilter('ALL',this)">Tutti</button>
+  <button class="filter-btn" onclick="setFilter('BET',this)">🎯 BET</button>
+  <button class="filter-btn" onclick="setFilter('WATCH',this)">👁 Watch</button>
+  <button class="filter-btn" onclick="setFilter('OGGI',this)">📅 Oggi</button>
+  <button class="filter-btn" onclick="setFilter('SKIP',this)">Skip</button>
+</div>
+
+<!-- CARDS -->
+<div class="cards" id="cards-container">
+  <div class="empty">
+    <div class="empty-icon">⚙️</div>
+    <div class="empty-title">Caricamento...</div>
+    <div class="empty-sub">Lanciare engine.py per aggiornare i dati</div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="setFilter('ALL',null)">
+    <div class="nav-icon">📊</div>Scanner
+  </div>
+  <div class="nav-item" onclick="setFilter('BET',null)">
+    <div class="nav-icon">🎯</div>BET
+  </div>
+  <div class="nav-item" onclick="setFilter('WATCH',null)">
+    <div class="nav-icon">👁</div>Watch
+  </div>
+  <div class="nav-item" onclick="setFilter('OGGI',null)">
+    <div class="nav-icon">📅</div>Oggi
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  DATI — engine.py sovrascrive queste due variabili
+// ════════════════════════════════════════════════════════════
+var LIVE_DATA = [];
+var DATA_TIMESTAMP = "—";
+
+// ════════════════════════════════════════════════════════════
+//  STATO APP
+// ════════════════════════════════════════════════════════════
+var currentFilter = 'ALL';
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderCards();
 }
 
-function sf(l,el){cf=l;vo=false;bo=false;document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));if(el)el.classList.add('active');render();}
-function tv(el){vo=!vo;bo=false;document.querySelectorAll('.vc,.bc').forEach(c=>c.classList.remove('active'));if(vo)el.classList.add('active');render();}
-function tb(el){bo=!bo;vo=false;document.querySelectorAll('.vc,.bc').forEach(c=>c.classList.remove('active'));if(bo)el.classList.add('active');render();}
-function render(){const ti=new Date().toISOString().slice(0,10);let fil=DATA.filter(m=>{if(!m.home)return false;if(m.date&&m.date<ti)return false;if(cf&&m.league!==cf)return false;if(vo&&(m.v1||0)<=0&&(m.vx||0)<=0&&(m.v2||0)<=0)return false;if(bo&&m.dec!=='BET')return false;return true;});
-document.getElementById('st').textContent=fil.length;document.getElementById('sb').textContent=fil.filter(m=>m.dec==='BET').length;document.getElementById('sw').textContent=fil.filter(m=>m.dec==='WATCH').length;
-const bd={};fil.forEach(m=>{(bd[m.date]=bd[m.date]||[]).push(m);});
-const lw=document.getElementById('lw');
-if(!fil.length){lw.innerHTML='<div class="empty"><div style="font-size:40px;opacity:.3;margin-bottom:12px">🔍</div><p>Nessuna partita</p></div>';return;}
-let h='';
-for(const dt of Object.keys(bd).sort()){let lb=dt;try{const d=new Date(dt+'T12:00:00');lb=d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});lb=lb.charAt(0).toUpperCase()+lb.slice(1);}catch(e){}
-h+=`<div class="dgrp"><div class="dlbl">${lb} — ${bd[dt].length}</div>`;
-bd[dt].forEach((m,i)=>{const hv=(m.v1||0)>0||(m.vx||0)>0||(m.v2||0)>0,cls=m.dec==='BET'?'ib':hv?'hv':'';const dot=LC[m.league]||'#5a6580';const bdg=m.dec==='BET'?'<span class="bdg bet">⚡ BET</span>':m.dec==='WATCH'?'<span class="bdg watch">👁 WATCH</span>':'';
-h+=`<div class="mc ${cls}" data-id="${m.id}" onclick="om('${m.id}')" style="animation-delay:${i*.03}s"><div class="ctop"><span class="lnm"><span class="ldot" style="background:${dot}"></span>${m.league}</span>${bdg}</div><div class="tms">${m.home} <span class="vs">vs</span> ${m.away}</div><div class="or"><div class="ob ${(m.v1||0)>0?'hot':''}"><span class="ol">1 Casa</span><span class="ov">${odd(m.o1)}</span>${vbadge(m.v1,true)}</div><div class="ob ${(m.vx||0)>0?'hot':''}"><span class="ol">X Pareggio</span><span class="ov">${odd(m.ox)}</span>${vbadge(m.vx,true)}</div><div class="ob ${(m.v2||0)>0?'hot':''}"><span class="ol">2 Ospite</span><span class="ov">${odd(m.o2)}</span>${vbadge(m.v2,true)}</div></div></div>`;});
-h+='</div>';}
-lw.innerHTML=h;}
-function om(id){const m=DATA.find(x=>x.id===id);if(!m)return;document.getElementById('ptl').textContent=m.home+' vs '+m.away;document.getElementById('pmt').textContent=m.league+' · '+m.date;const od=m.lh&&m.la?ou(m.lh,m.la):null,conf=m.conf||0,dc=m.dec==='BET'?'bet':m.dec==='WATCH'?'watch':'skip',dl=m.dec==='BET'?'⚡ BET':m.dec==='WATCH'?'👁 WATCH':'⛔ SKIP';
-let bdy=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:17px;line-height:1.2">${m.home}<br><span style="color:var(--muted);font-size:12px;font-weight:400">vs</span> ${m.away}</div><div style="font-size:10px;color:var(--muted);margin-top:4px">${m.league} · ${m.date}</div></div><div class="db ${dc}">${dl}<span class="ds">conf ${(conf*100).toFixed(0)}%</span></div></div>`;
-bdy+=`<div class="st">📋 Quote</div><div class="op"><div class="opb ${(m.v1||0)>0?'hot':''}"><div class="opl">1 Casa</div><div class="opv">${odd(m.o1)}</div>${vbadge(m.v1)}</div><div class="opb ${(m.vx||0)>0?'hot':''}"><div class="opl">X Pareggio</div><div class="opv">${odd(m.ox)}</div>${vbadge(m.vx)}</div><div class="opb ${(m.v2||0)>0?'hot':''}"><div class="opl">2 Ospite</div><div class="opv">${odd(m.o2)}</div>${vbadge(m.v2)}</div></div>`;
-if(m.lh&&m.la)bdy+=`<div class="st">⚽ Gol attesi (λ)</div><div class="lg"><div class="lb"><div class="lt">${m.home}</div><div class="lv">${m.lh.toFixed(2)}</div><div class="ll">λ Casa</div></div><div class="lb"><div class="lt">${m.away}</div><div class="lv">${m.la.toFixed(2)}</div><div class="ll">λ Ospite</div></div></div><div style="text-align:center;font-size:10px;color:var(--muted);margin-top:4px">Media gol: <b style="color:var(--text)">${(m.lh+m.la).toFixed(2)}</b></div>`;
-if(conf>0)bdy+=`<div class="st">📊 Confidence</div><div class="cr"><span class="cl">Confidence</span><div class="cbw"><div class="cbar" style="width:${(conf*100).toFixed(0)}%"></div></div><span class="cv">${(conf*100).toFixed(0)}%</span></div>${m.kelly>0?`<div class="cr"><span class="cl">Kelly</span><div class="cbw"><div class="cbar" style="width:${Math.min(m.kelly*500,100)}%;background:var(--yellow)"></div></div><span class="cv" style="color:var(--yellow)">${(m.kelly*100).toFixed(1)}%</span></div>`:''}`;
-if(m.p1!=null)bdy+=`<div class="st">🎯 Prob 1X2</div><div class="pr"><span class="pl">1 Casa</span><div class="pbw"><div class="pbar" style="width:${pct(m.p1)}"></div></div><span class="pp">${pct(m.p1)}</span><span class="fq">F ${fair(m.p1)}</span></div><div class="pr"><span class="pl">X Pareg.</span><div class="pbw"><div class="pbar am" style="width:${pct(m.px)}"></div></div><span class="pp">${pct(m.px)}</span><span class="fq">F ${fair(m.px)}</span></div><div class="pr"><span class="pl">2 Ospite</span><div class="pbw"><div class="pbar rd" style="width:${pct(m.p2)}"></div></div><span class="pp">${pct(m.p2)}</span><span class="fq">F ${fair(m.p2)}</span></div>`;
-if(od)bdy+=`<div class="st">📈 Over/Under</div><div class="og">${[['Over 0.5',od.ov05,'var(--accent)'],['Over 1.5',od.ov15,'var(--accent)'],['Over 2.5',od.ov25,'var(--blue)'],['Over 3.5',od.ov35,'var(--yellow)'],['GG',od.gg,'var(--accent)'],['NG',1-od.gg,'var(--red)']].map(([l,v,c])=>`<div class="oub"><div class="oul">${l}</div><div class="oup" style="color:${c}">${pct(v)}</div><div class="ouf">F ${fair(v)}</div></div>`).join('')}</div>`;
-bdy+=`<div class="nb">📌 Fair = quota equa modello Poisson+DC<br>📌 Value% = prob×quota−1<br>📌 Agg: ${DATA_TIMESTAMP||'—'}</div>`;
-document.getElementById('pb').innerHTML=bdy;document.getElementById('pn').classList.add('open');document.getElementById('lw').classList.add('po');}
-function cp(){document.getElementById('pn').classList.remove('open');document.getElementById('lw').classList.remove('po');}
-let tx=0;document.getElementById('pn').addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
-document.getElementById('pn').addEventListener('touchend',e=>{if(e.changedTouches[0].clientX-tx>60)cp();},{passive:true});
-function init(){if(typeof LIVE_DATA!=='undefined'&&LIVE_DATA.length>0){DATA=LIVE_DATA.map(ar).filter(m=>m.home&&m.away);}render();}
-buildChips();
-init();
-</script>
-<script>
-// DATI LIVE — aggiornati da engine.py
-var LIVE_DATA = [{"Date": "LUNEDÌ 25 MAGGIO 2026", "Home": "Paderborn", "Away": "Wolfsburg", "Home_orig": "SC Paderborn", "Away_orig": "Wolfsburg", "Campionato": "Bundesliga", "Match_ID": "20260525_SC_PADERBORN_WOLFSBURG", "Odd1": 3.5, "OddX": 3.5, "Odd2": 2.05, "Odd_OV25": 1.85, "Odd_UN25": 1.85, "Odd_GG": 1.72, "Odd_NG": 2.0, "lam_h": 2.7896, "lam_a": 2.2611, "Prob1": 0.501604, "ProbX": 0.178119, "Prob2": 0.320278, "Prob_OV25": 0.879532, "Prob_UN25": 0.1205, "Prob_GG": 0.840712, "Prob_NG": 0.1593, "Decision": "BET", "REASON": "BET", "TipoScommessa": "1", "Odds_Bet": 3.5, "Value_Max": 0.7556, "EV": 0.7556, "Kelly": 0.0756, "Confidence": 0.5826, "Stake": 75.6, "lam_tot": 5.0507, "_modello": "modello", "mu_H": 1.589, "mu_A": 1.327, "RISK_FLAG": "OK", "AQ_FILTRATO": 0.7556, "Value1": 0.7556, "ValueX": -0.3766, "Value2": -0.3434, "Value_OV25": 0.6271, "Value_UN25": -0.7771, "Value_GG": 0.446, "Value_NG": -0.6814, "Prob_sel": 0.501604}, {"Date": "LUNEDÌ 25 MAGGIO 2026", "Home": "Goteborg", "Away": "Mjallby", "Home_orig": "Goteborg", "Away_orig": "Mjallby", "Campionato": "SVEZIA", "Match_ID": "20260525_GOTEBORG_MJALLBY", "Odd1": 2.6, "OddX": 3.05, "Odd2": 2.8, "Odd_OV25": 1.92, "Odd_UN25": 1.8, "Odd_GG": 1.7, "Odd_NG": 2.05, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.104, "TipoScommessa": "1", "Odds_Bet": 2.6, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_SVEZIA_no_Goteborg_no_Mjallby", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.104, "ValueX": -0.1747, "Value2": -0.1468, "Value_OV25": -0.1489, "Value_UN25": 0.0021, "Value_GG": -0.1599, "Value_NG": 0.0369, "Prob_sel": 0.4246}, {"Date": "LUNEDÌ 25 MAGGIO 2026", "Home": "Elfsborg", "Away": "Hacken", "Home_orig": "Elfsborg", "Away_orig": "Hacken", "Campionato": "SVEZIA", "Match_ID": "20260525_ELFSBORG_HACKEN", "Odd1": 2.8, "OddX": 3.35, "Odd2": 2.4, "Odd_OV25": 1.8, "Odd_UN25": 1.9, "Odd_GG": 1.65, "Odd_NG": 2.1, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.1889, "TipoScommessa": "1", "Odds_Bet": 2.8, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_SVEZIA_no_Elfsborg_no_Hacken", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.1889, "ValueX": -0.0935, "Value2": -0.2687, "Value_OV25": -0.2021, "Value_UN25": 0.0577, "Value_GG": -0.1846, "Value_NG": 0.0622, "Prob_sel": 0.4246}, {"Date": "MARTEDÌ 26 MAGGIO 2026", "Home": "St Etienne", "Away": "Nice", "Home_orig": "Saint-Étienne", "Away_orig": "Nizza", "Campionato": "Ligue 1", "Match_ID": "20260526_SAINT__TIENN_NIZZA", "Odd1": 2.2, "OddX": 3.55, "Odd2": 3.0, "Odd_OV25": 1.62, "Odd_UN25": 2.15, "Odd_GG": 1.53, "Odd_NG": 2.35, "lam_h": 1.728, "lam_a": 1.7442, "Prob1": 0.384772, "ProbX": 0.223787, "Prob2": 0.391441, "Prob_OV25": 0.673979, "Prob_UN25": 0.326, "Prob_GG": 0.678624, "Prob_NG": 0.3214, "Decision": "BET", "REASON": "BET", "TipoScommessa": "OV2.5", "Odds_Bet": 1.62, "Value_Max": 0.0918, "EV": 0.0918, "Kelly": 0.037, "Confidence": 0.55, "Stake": 37.0, "lam_tot": 3.4722, "_modello": "modello", "mu_H": 1.312, "mu_A": 1.102, "RISK_FLAG": "OK", "AQ_FILTRATO": 0.0918, "Value1": -0.1535, "ValueX": -0.2056, "Value2": 0.1743, "Value_OV25": 0.0918, "Value_UN25": -0.2991, "Value_GG": 0.0383, "Value_NG": -0.2447, "Prob_sel": 0.673979}, {"Date": "MARTEDÌ 26 MAGGIO 2026", "Home": "Greuther Fürth", "Away": "Rot Weiss Essen", "Home_orig": "Greuther Fürth", "Away_orig": "Rot Weiss Essen", "Campionato": "Bundesliga 2", "Match_ID": "20260526_GREUTHER_F_R_ROT_WEISS_ES", "Odd1": 1.73, "OddX": 4.2, "Odd2": 3.95, "Odd_OV25": 1.62, "Odd_UN25": 2.15, "Odd_GG": 1.65, "Odd_NG": 2.15, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.45, "mu_A": 1.2, "Confidence": 0.3, "Value_Max": 0.2037, "TipoScommessa": "2", "Odds_Bet": 3.95, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_Bundesliga_2_no_Rot", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.2654, "ValueX": 0.1365, "Value2": 0.2036, "Value_OV25": -0.2819, "Value_UN25": 0.1969, "Value_GG": -0.1846, "Value_NG": 0.0875, "Prob_sel": 0.3047}, {"Date": "VENERDÌ 29 MAGGIO 2026", "Home": "Liaoning Tieren", "Away": "Shanghai Port", "Home_orig": "Liaoning Tieren", "Away_orig": "Shanghai Port", "Campionato": "CINA", "Match_ID": "20260529_LIAONING_TIE_SHANGHAI_POR", "Odd1": 2.3, "OddX": 3.65, "Odd2": 2.6, "Odd_OV25": 1.58, "Odd_UN25": 2.2, "Odd_GG": 1.5, "Odd_NG": 2.3, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": null, "TipoScommessa": null, "Odds_Bet": null, "Kelly": null, "Stake": null, "Decision": "SKIP", "REASON": "stima_media_CINA_no_Liaoning_no_Shanghai", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.0234, "ValueX": -0.0123, "Value2": -0.2078, "Value_OV25": -0.2996, "Value_UN25": 0.2247, "Value_GG": -0.2587, "Value_NG": 0.1633, "Prob_sel": null}, {"Date": "VENERDÌ 29 MAGGIO 2026", "Home": "Monza", "Away": "Catanzaro", "Home_orig": "Monza", "Away_orig": "Catanzaro", "Campionato": "Serie B", "Match_ID": "20260529_MONZA_CATANZARO", "Odd1": 1.63, "OddX": 4.1, "Odd2": 4.75, "Odd_OV25": 1.65, "Odd_UN25": 2.1, "Odd_GG": 1.68, "Odd_NG": 2.05, "lam_h": 2.027, "lam_a": 1.0177, "Prob1": 0.607183, "ProbX": 0.209716, "Prob2": 0.183101, "Prob_OV25": 0.586746, "Prob_UN25": 0.4133, "Prob_GG": 0.554454, "Prob_NG": 0.4455, "Decision": "SKIP", "REASON": "value -1.0%<5%,kelly 0.00%<3%", "TipoScommessa": "1", "Odds_Bet": 1.63, "Value_Max": -0.0103, "EV": -0.0103, "Kelly": 0.0, "Confidence": 0.9411, "Stake": 0, "lam_tot": 3.0447, "_modello": "modello", "mu_H": 1.298, "mu_A": 1.097, "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.0103, "ValueX": -0.1402, "Value2": -0.1303, "Value_OV25": -0.0319, "Value_UN25": -0.1321, "Value_GG": -0.0685, "Value_NG": -0.0867, "Prob_sel": 0.607183}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "QINGDAO ZHONG. HENGTAI", "Away": "Shanghai Shenhua", "Home_orig": "QINGDAO ZHONG. HENGTAI", "Away_orig": "Shanghai Shenhua", "Campionato": "CINA", "Match_ID": "20260530_QINGDAO_ZHON_SHANGHAI_SHE", "Odd1": 2.25, "OddX": 3.35, "Odd2": 2.9, "Odd_OV25": 1.65, "Odd_UN25": 2.1, "Odd_GG": 1.52, "Odd_NG": 2.25, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": null, "TipoScommessa": null, "Odds_Bet": null, "Kelly": null, "Stake": null, "Decision": "SKIP", "REASON": "stima_media_CINA_no_QINGDAO_no_Shanghai", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.0447, "ValueX": -0.0935, "Value2": -0.1164, "Value_OV25": -0.2686, "Value_UN25": 0.1691, "Value_GG": -0.2488, "Value_NG": 0.1381, "Prob_sel": null}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Henan Songshan Longmen", "Away": "Zhejiang Greentown FC", "Home_orig": "Henan Songshan Longmen", "Away_orig": "Zhejiang Greentown FC", "Campionato": "CINA", "Match_ID": "20260530_HENAN_SONGSH_ZHEJIANG_GRE", "Odd1": 2.0, "OddX": 3.45, "Odd2": 3.35, "Odd_OV25": 1.65, "Odd_UN25": 2.1, "Odd_GG": 1.55, "Odd_NG": 2.2, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": null, "TipoScommessa": null, "Odds_Bet": null, "Kelly": null, "Stake": null, "Decision": "SKIP", "REASON": "stima_media_CINA_no_Henan_no_Zhejiang", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.1508, "ValueX": -0.0664, "Value2": 0.0207, "Value_OV25": -0.2686, "Value_UN25": 0.1691, "Value_GG": -0.234, "Value_NG": 0.1128, "Prob_sel": null}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Chengdu Rongcheng", "Away": "Shandong Taishan", "Home_orig": "Chengdu Rongcheng", "Away_orig": "Shandong Taishan", "Campionato": "CINA", "Match_ID": "20260530_CHENGDU_RONG_SHANDONG_TAI", "Odd1": 1.95, "OddX": 3.85, "Odd2": 3.2, "Odd_OV25": 1.4, "Odd_UN25": 2.7, "Odd_GG": 1.37, "Odd_NG": 2.7, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": null, "TipoScommessa": null, "Odds_Bet": null, "Kelly": null, "Stake": null, "Decision": "SKIP", "REASON": "stima_media_CINA_no_Chengdu_no_Shandong", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.172, "ValueX": 0.0418, "Value2": -0.025, "Value_OV25": -0.3794, "Value_UN25": 0.5031, "Value_GG": -0.3229, "Value_NG": 0.3657, "Prob_sel": null}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Chongqing Tonglianglong FC", "Away": "Beijing Guoan", "Home_orig": "Chongqing Tonglianglong FC", "Away_orig": "Beijing Guoan", "Campionato": "CINA", "Match_ID": "20260530_CHONGQING_TO_BEIJING_GUOA", "Odd1": 3.5, "OddX": 3.35, "Odd2": 2.0, "Odd_OV25": 1.82, "Odd_UN25": 1.87, "Odd_GG": 1.67, "Odd_NG": 2.0, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.4862, "TipoScommessa": "1", "Odds_Bet": 3.5, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_CINA_no_Chongqing_no_Beijing", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.4861, "ValueX": -0.0935, "Value2": -0.3906, "Value_OV25": -0.1932, "Value_UN25": 0.041, "Value_GG": -0.1747, "Value_NG": 0.0116, "Prob_sel": 0.4246}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Sichuan Jiuniu", "Away": "Qingdao Hainiu FC", "Home_orig": "Sichuan Jiuniu", "Away_orig": "Qingdao Hainiu FC", "Campionato": "CINA", "Match_ID": "20260530_SICHUAN_JIUN_QINGDAO_HAIN", "Odd1": 2.1, "OddX": 3.3, "Odd2": 3.2, "Odd_OV25": 1.85, "Odd_UN25": 1.82, "Odd_GG": 1.7, "Odd_NG": 1.97, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": null, "TipoScommessa": null, "Odds_Bet": null, "Kelly": null, "Stake": null, "Decision": "SKIP", "REASON": "stima_media_CINA_no_Sichuan_no_Qingdao", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.1083, "ValueX": -0.107, "Value2": -0.025, "Value_OV25": -0.1799, "Value_UN25": 0.0132, "Value_GG": -0.1599, "Value_NG": -0.0036, "Prob_sel": null}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "HJK Helsinki", "Away": "IFK Mariehamn", "Home_orig": "HJK Helsinki", "Away_orig": "IFK Mariehamn", "Campionato": "FINLANDIA", "Match_ID": "20260530_HJK_HELSINKI_IFK_MARIEHAM", "Odd1": 1.18, "OddX": 6.5, "Odd2": 11.0, "Odd_OV25": 1.43, "Odd_UN25": 2.6, "Odd_GG": 1.97, "Odd_NG": 1.68, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 2.3522, "TipoScommessa": "2", "Odds_Bet": 11.0, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_FINLANDIA_no_HJK_no_IFK", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.499, "ValueX": 0.7589, "Value2": 2.3517, "Value_OV25": -0.3661, "Value_UN25": 0.4474, "Value_GG": -0.0264, "Value_NG": -0.1503, "Prob_sel": 0.3047}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "IF Gnistan", "Away": "Seinajoen", "Home_orig": "IF Gnistan", "Away_orig": "Seinajoen", "Campionato": "FINLANDIA", "Match_ID": "20260530_IF_GNISTAN_SEINAJOEN", "Odd1": 2.65, "OddX": 3.4, "Odd2": 2.4, "Odd_OV25": 1.67, "Odd_UN25": 2.05, "Odd_GG": 1.55, "Odd_NG": 2.2, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.1252, "TipoScommessa": "1", "Odds_Bet": 2.65, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_FINLANDIA_no_IF_no_Seinajoen", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.1252, "ValueX": -0.08, "Value2": -0.2687, "Value_OV25": -0.2597, "Value_UN25": 0.1412, "Value_GG": -0.234, "Value_NG": 0.1128, "Prob_sel": 0.4246}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Kuopion Palloseura", "Away": "Inter Turku", "Home_orig": "Kuopion Palloseura", "Away_orig": "Inter Turku", "Campionato": "FINLANDIA", "Match_ID": "20260530_KUOPION_PALL_INTER_TURKU", "Odd1": 2.45, "OddX": 3.1, "Odd2": 2.8, "Odd_OV25": 2.05, "Odd_UN25": 1.68, "Odd_GG": 1.78, "Odd_NG": 1.85, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.0403, "TipoScommessa": "1", "Odds_Bet": 2.45, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_FINLANDIA_no_Kuopion_no_Inter", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.0403, "ValueX": -0.1611, "Value2": -0.1468, "Value_OV25": -0.0912, "Value_UN25": -0.0647, "Value_GG": -0.1203, "Value_NG": -0.0643, "Prob_sel": 0.4246}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Turun Palloseura", "Away": "Vaasan", "Home_orig": "Turun Palloseura", "Away_orig": "Vaasan", "Campionato": "FINLANDIA", "Match_ID": "20260530_TURUN_PALLOS_VAASAN", "Odd1": 2.8, "OddX": 3.2, "Odd2": 2.4, "Odd_OV25": 1.88, "Odd_UN25": 1.8, "Odd_GG": 1.68, "Odd_NG": 1.98, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.1889, "TipoScommessa": "1", "Odds_Bet": 2.8, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_FINLANDIA_no_Turun_no_Vaasan", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.1889, "ValueX": -0.1341, "Value2": -0.2687, "Value_OV25": -0.1666, "Value_UN25": 0.0021, "Value_GG": -0.1697, "Value_NG": 0.0015, "Prob_sel": 0.4246}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Lahti", "Away": "Ilves Tampere", "Home_orig": "Lahti", "Away_orig": "Ilves Tampere", "Campionato": "FINLANDIA", "Match_ID": "20260530_LAHTI_ILVES_TAMPER", "Odd1": 2.5, "OddX": 3.2, "Odd2": 2.65, "Odd_OV25": 2.0, "Odd_UN25": 1.7, "Odd_GG": 1.75, "Odd_NG": 1.88, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.0615, "TipoScommessa": "1", "Odds_Bet": 2.5, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_FINLANDIA_no_Lahti_no_Ilves", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.0615, "ValueX": -0.1341, "Value2": -0.1925, "Value_OV25": -0.1134, "Value_UN25": -0.0536, "Value_GG": -0.1352, "Value_NG": -0.0491, "Prob_sel": 0.4246}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Ceuta", "Away": "Albacete", "Home_orig": "AD Ceuta", "Away_orig": "Albacete", "Campionato": "La Liga 2", "Match_ID": "20260530_AD_CEUTA_ALBACETE", "Odd1": 2.4, "OddX": 3.3, "Odd2": 2.65, "Odd_OV25": 1.65, "Odd_UN25": 2.05, "Odd_GG": 1.52, "Odd_NG": 2.25, "lam_h": 0.7347, "lam_a": 1.3846, "Prob1": 0.198577, "ProbX": 0.277125, "Prob2": 0.524298, "Prob_OV25": 0.355577, "Prob_UN25": 0.6444, "Prob_GG": 0.390043, "Prob_NG": 0.61, "Decision": "BET", "REASON": "BET", "TipoScommessa": "2", "Odds_Bet": 2.65, "Value_Max": 0.3894, "EV": 0.3894, "Kelly": 0.059, "Confidence": 0.6754, "Stake": 59.0, "lam_tot": 2.1193, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": 0.3894, "Value1": -0.5234, "ValueX": -0.0855, "Value2": 0.3894, "Value_OV25": -0.4133, "Value_UN25": 0.321, "Value_GG": -0.4071, "Value_NG": 0.3725, "Prob_sel": 0.524298}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Granada", "Away": "Sporting Gijón", "Home_orig": "Granada", "Away_orig": "Sporting Gijón", "Campionato": "La Liga 2", "Match_ID": "20260530_GRANADA_SPORTING_GIJ", "Odd1": 2.25, "OddX": 3.25, "Odd2": 2.85, "Odd_OV25": 1.82, "Odd_UN25": 1.85, "Odd_GG": 1.65, "Odd_NG": 2.0, "lam_h": 1.38, "lam_a": 1.09, "lam_tot": 2.47, "Prob1": 0.435, "ProbX": 0.2685, "Prob2": 0.2966, "Prob_OV25": 0.4485, "Prob_UN25": 0.5515, "Prob_GG": 0.4968, "Prob_NG": 0.5032, "mu_H": 1.38, "mu_A": 1.09, "Confidence": 0.3, "Value_Max": null, "TipoScommessa": null, "Odds_Bet": null, "Kelly": null, "Stake": null, "Decision": "SKIP", "REASON": "stima_media_La_Liga_2_no_Sporting", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.0212, "ValueX": -0.1274, "Value2": -0.1547, "Value_OV25": -0.1837, "Value_UN25": 0.0203, "Value_GG": -0.1803, "Value_NG": 0.0064, "Prob_sel": null}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "AIK", "Away": "Sirius", "Home_orig": "AIK", "Away_orig": "Sirius", "Campionato": "SVEZIA", "Match_ID": "20260530_AIK_SIRIUS", "Odd1": 3.0, "OddX": 3.75, "Odd2": 2.1, "Odd_OV25": 1.6, "Odd_UN25": 2.2, "Odd_GG": 1.55, "Odd_NG": 2.3, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.2739, "TipoScommessa": "1", "Odds_Bet": 3.0, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_SVEZIA_no_AIK_no_Sirius", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.2738, "ValueX": 0.0148, "Value2": -0.3601, "Value_OV25": -0.2907, "Value_UN25": 0.2247, "Value_GG": -0.234, "Value_NG": 0.1633, "Prob_sel": 0.4246}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Gais Goteborg", "Away": "Kalmar FF", "Home_orig": "Gais Goteborg", "Away_orig": "Kalmar FF", "Campionato": "SVEZIA", "Match_ID": "20260530_GAIS_GOTEBOR_KALMAR_FF", "Odd1": 1.78, "OddX": 3.55, "Odd2": 4.2, "Odd_OV25": 1.88, "Odd_UN25": 1.83, "Odd_GG": 1.8, "Odd_NG": 1.9, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.2799, "TipoScommessa": "2", "Odds_Bet": 4.2, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_SVEZIA_no_Gais_no_Kalmar", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.2442, "ValueX": -0.0394, "Value2": 0.2797, "Value_OV25": -0.1666, "Value_UN25": 0.0188, "Value_GG": -0.1104, "Value_NG": -0.039, "Prob_sel": 0.3047}, {"Date": "SABATO 30 MAGGIO 2026", "Home": "Malmoe", "Away": "Halmstads", "Home_orig": "Malmoe", "Away_orig": "Halmstads", "Campionato": "SVEZIA", "Match_ID": "20260530_MALMOE_HALMSTADS", "Odd1": 1.5, "OddX": 4.2, "Odd2": 5.75, "Odd_OV25": 1.75, "Odd_UN25": 2.0, "Odd_GG": 1.85, "Odd_NG": 1.85, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.7523, "TipoScommessa": "2", "Odds_Bet": 5.75, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_SVEZIA_no_Malmoe_no_Halmstads", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.3631, "ValueX": 0.1365, "Value2": 0.752, "Value_OV25": -0.2242, "Value_UN25": 0.1134, "Value_GG": -0.0857, "Value_NG": -0.0643, "Prob_sel": 0.3047}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Tianjin Tigers", "Away": "Dalian Zhixing FC", "Home_orig": "Tianjin Tigers", "Away_orig": "Dalian Zhixing FC", "Campionato": "CINA", "Match_ID": "20260531_TIANJIN_TIGE_DALIAN_ZHIXI", "Odd1": 2.95, "OddX": 3.05, "Odd2": 2.35, "Odd_OV25": 2.05, "Odd_UN25": 1.68, "Odd_GG": 1.78, "Odd_NG": 1.85, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.2526, "TipoScommessa": "1", "Odds_Bet": 2.95, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_CINA_no_Tianjin_no_Dalian", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.2526, "ValueX": -0.1747, "Value2": -0.284, "Value_OV25": -0.0912, "Value_UN25": -0.0647, "Value_GG": -0.1203, "Value_NG": -0.0643, "Prob_sel": 0.4246}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Wuhan Three Towns", "Away": "Yunnan Yukun", "Home_orig": "Wuhan Three Towns", "Away_orig": "Yunnan Yukun", "Campionato": "CINA", "Match_ID": "20260531_WUHAN_THREE_YUNNAN_YUKUN", "Odd1": 2.55, "OddX": 3.4, "Odd2": 2.5, "Odd_OV25": 1.55, "Odd_UN25": 2.25, "Odd_GG": 1.45, "Odd_NG": 2.45, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.0828, "TipoScommessa": "1", "Odds_Bet": 2.55, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_CINA_no_Wuhan_no_Yunnan", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": 0.0827, "ValueX": -0.08, "Value2": -0.2382, "Value_OV25": -0.3129, "Value_UN25": 0.2526, "Value_GG": -0.2834, "Value_NG": 0.2392, "Prob_sel": 0.4246}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Oulu", "Away": "Jaro", "Home_orig": "Oulu", "Away_orig": "Jaro", "Campionato": "FINLANDIA", "Match_ID": "20260531_OULU_JARO", "Odd1": 1.52, "OddX": 4.05, "Odd2": 5.25, "Odd_OV25": 1.73, "Odd_UN25": 1.97, "Odd_GG": 1.8, "Odd_NG": 1.85, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": 0.5999, "TipoScommessa": "2", "Odds_Bet": 5.25, "Kelly": null, "Stake": null, "Decision": "WATCH", "REASON": "stima_media_FINLANDIA_no_Oulu_no_Jaro", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.3546, "ValueX": 0.0959, "Value2": 0.5997, "Value_OV25": -0.2331, "Value_UN25": 0.0967, "Value_GG": -0.1104, "Value_NG": -0.0643, "Prob_sel": 0.3047}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Castellon", "Away": "Eibar", "Home_orig": "Castellon", "Away_orig": "Eibar", "Campionato": "La Liga 2", "Match_ID": "20260531_CASTELLON_EIBAR", "Odd1": 1.5, "OddX": 4.2, "Odd2": 5.0, "Odd_OV25": 1.53, "Odd_UN25": 2.25, "Odd_GG": 1.62, "Odd_NG": 2.05, "lam_h": 0.9441, "lam_a": 0.816, "Prob1": 0.369106, "ProbX": 0.332373, "Prob2": 0.298521, "Prob_OV25": 0.25872, "Prob_UN25": 0.7413, "Prob_GG": 0.340801, "Prob_NG": 0.6592, "Decision": "BET", "REASON": "BET", "TipoScommessa": "UN2.5", "Odds_Bet": 2.25, "Value_Max": 0.6679, "EV": 0.6679, "Kelly": 0.1336, "Confidence": 0.55, "Stake": 133.6, "lam_tot": 1.7601, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": 0.6679, "Value1": -0.4463, "ValueX": 0.396, "Value2": 0.4926, "Value_OV25": -0.6042, "Value_UN25": 0.6679, "Value_GG": -0.4479, "Value_NG": 0.3514, "Prob_sel": 0.7413}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Zaragoza", "Away": "Malaga", "Home_orig": "Real Saragozza", "Away_orig": "Malaga", "Campionato": "La Liga 2", "Match_ID": "20260531_REAL_SARAGOZ_MALAGA", "Odd1": 3.7, "OddX": 3.75, "Odd2": 1.78, "Odd_OV25": 1.73, "Odd_UN25": 1.95, "Odd_GG": 1.67, "Odd_NG": 1.98, "lam_h": 0.9702, "lam_a": 2.4199, "Prob1": 0.1333, "ProbX": 0.173366, "Prob2": 0.693335, "Prob_OV25": 0.658331, "Prob_UN25": 0.3417, "Prob_GG": 0.565765, "Prob_NG": 0.4342, "Decision": "BET", "REASON": "BET", "TipoScommessa": "2", "Odds_Bet": 1.78, "Value_Max": 0.2341, "EV": 0.2341, "Kelly": 0.075, "Confidence": 0.6724, "Stake": 75.0, "lam_tot": 3.3901, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": 0.2341, "Value1": -0.5068, "ValueX": -0.3499, "Value2": 0.2341, "Value_OV25": 0.1389, "Value_UN25": -0.3337, "Value_GG": -0.0552, "Value_NG": -0.1403, "Prob_sel": 0.693335}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Santander", "Away": "Cadiz", "Home_orig": "Racing Santander", "Away_orig": "Cadice", "Campionato": "La Liga 2", "Match_ID": "20260531_RACING_SANTA_CADICE", "Odd1": 1.32, "OddX": 5.0, "Odd2": 7.0, "Odd_OV25": 1.38, "Odd_UN25": 2.7, "Odd_GG": 1.6, "Odd_NG": 2.1, "lam_h": 3.0699, "lam_a": 1.1404, "Prob1": 0.757629, "ProbX": 0.134487, "Prob2": 0.107885, "Prob_OV25": 0.791047, "Prob_UN25": 0.209, "Prob_GG": 0.648714, "Prob_NG": 0.3513, "Decision": "WATCH", "REASON": "WATCH", "TipoScommessa": "GG", "Odds_Bet": 1.6, "Value_Max": 0.0379, "EV": 0.0379, "Kelly": 0.0158, "Confidence": 0.55, "Stake": 15.8, "lam_tot": 4.2103, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "RISK", "AQ_FILTRATO": null, "Value1": 0.0001, "ValueX": -0.3276, "Value2": -0.2448, "Value_OV25": 0.0916, "Value_UN25": -0.4357, "Value_GG": 0.0379, "Value_NG": -0.2623, "Prob_sel": 0.648714}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Sociedad B", "Away": "Cultural Leonesa", "Home_orig": "Real Sociedad B", "Away_orig": "Cultural Leonesa", "Campionato": "La Liga 2", "Match_ID": "20260531_REAL_SOCIEDA_CULTURAL_LEO", "Odd1": 2.15, "OddX": 3.35, "Odd2": 2.95, "Odd_OV25": 1.7, "Odd_UN25": 2.0, "Odd_GG": 1.57, "Odd_NG": 2.15, "lam_h": 1.4168, "lam_a": 1.1304, "Prob1": 0.435562, "ProbX": 0.263802, "Prob2": 0.300636, "Prob_OV25": 0.468236, "Prob_UN25": 0.5318, "Prob_GG": 0.512908, "Prob_NG": 0.4871, "Decision": "WATCH", "REASON": "WATCH", "TipoScommessa": "UN2.5", "Odds_Bet": 2.0, "Value_Max": 0.0636, "EV": 0.0636, "Kelly": 0.0159, "Confidence": 0.55, "Stake": 15.9, "lam_tot": 2.5472, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.0635, "ValueX": -0.1163, "Value2": -0.1131, "Value_OV25": -0.204, "Value_UN25": 0.0636, "Value_GG": -0.1947, "Value_NG": 0.0473, "Prob_sel": 0.5318}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "La Coruna", "Away": "Las Palmas", "Home_orig": "Deportivo La Coruña", "Away_orig": "UD Las Palmas", "Campionato": "La Liga 2", "Match_ID": "20260531_DEPORTIVO_LA_UD_LAS_PALMA", "Odd1": 2.75, "OddX": 3.2, "Odd2": 2.35, "Odd_OV25": 1.9, "Odd_UN25": 1.75, "Odd_GG": 1.7, "Odd_NG": 1.93, "lam_h": 1.8001, "lam_a": 1.0287, "Prob1": 0.554581, "ProbX": 0.230865, "Prob2": 0.214554, "Prob_OV25": 0.537382, "Prob_UN25": 0.4626, "Prob_GG": 0.53633, "Prob_NG": 0.4637, "Decision": "BET", "REASON": "BET", "TipoScommessa": "1", "Odds_Bet": 2.75, "Value_Max": 0.5251, "EV": 0.5251, "Kelly": 0.075, "Confidence": 0.5959, "Stake": 75.0, "lam_tot": 2.8288, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": 0.5251, "Value1": 0.5251, "ValueX": -0.2612, "Value2": -0.4958, "Value_OV25": 0.021, "Value_UN25": -0.1905, "Value_GG": -0.0882, "Value_NG": -0.1051, "Prob_sel": 0.554581}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Leganes", "Away": "Mirandes", "Home_orig": "Leganes", "Away_orig": "CD Mirandes", "Campionato": "La Liga 2", "Match_ID": "20260531_LEGANES_CD_MIRANDES", "Odd1": 1.88, "OddX": 3.45, "Odd2": 3.6, "Odd_OV25": 1.73, "Odd_UN25": 1.95, "Odd_GG": 1.63, "Odd_NG": 2.05, "lam_h": 1.57, "lam_a": 1.3556, "Prob1": 0.425116, "ProbX": 0.244957, "Prob2": 0.329927, "Prob_OV25": 0.559936, "Prob_UN25": 0.4401, "Prob_GG": 0.587795, "Prob_NG": 0.4122, "Decision": "WATCH", "REASON": "WATCH", "TipoScommessa": "2", "Odds_Bet": 3.6, "Value_Max": 0.1877, "EV": 0.1877, "Kelly": 0.0181, "Confidence": 0.8609, "Stake": 18.1, "lam_tot": 2.9256, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.2008, "ValueX": -0.1549, "Value2": 0.1877, "Value_OV25": -0.0313, "Value_UN25": -0.1418, "Value_GG": -0.0419, "Value_NG": -0.155, "Prob_sel": 0.329927}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Burgos", "Away": "Andorra", "Home_orig": "Burgos CF", "Away_orig": "FC Andorra", "Campionato": "La Liga 2", "Match_ID": "20260531_BURGOS_CF_FC_ANDORRA", "Odd1": 1.48, "OddX": 3.95, "Odd2": 5.75, "Odd_OV25": 1.87, "Odd_UN25": 1.78, "Odd_GG": 1.98, "Odd_NG": 1.67, "lam_h": 0.9371, "lam_a": 0.7705, "Prob1": 0.377512, "ProbX": 0.337819, "Prob2": 0.284669, "Prob_OV25": 0.244784, "Prob_UN25": 0.7552, "Prob_GG": 0.326756, "Prob_NG": 0.6732, "Decision": "BET", "REASON": "BET", "TipoScommessa": "2", "Odds_Bet": 5.75, "Value_Max": 0.6368, "EV": 0.6368, "Kelly": 0.0335, "Confidence": 0.7715, "Stake": 33.5, "lam_tot": 1.7076, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": 0.6368, "Value1": -0.4413, "ValueX": 0.3344, "Value2": 0.6368, "Value_OV25": -0.5423, "Value_UN25": 0.3443, "Value_GG": -0.353, "Value_NG": 0.1242, "Prob_sel": 0.284669}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Cordoba", "Away": "Huesca", "Home_orig": "Cordoba CF", "Away_orig": "Huesca", "Campionato": "La Liga 2", "Match_ID": "20260531_CORDOBA_CF_HUESCA", "Odd1": 1.55, "OddX": 4.15, "Odd2": 4.7, "Odd_OV25": 1.65, "Odd_UN25": 2.05, "Odd_GG": 1.7, "Odd_NG": 1.93, "lam_h": 1.8988, "lam_a": 1.1209, "Prob1": 0.55514, "ProbX": 0.222968, "Prob2": 0.221892, "Prob_OV25": 0.581207, "Prob_UN25": 0.4188, "Prob_GG": 0.573081, "Prob_NG": 0.4269, "Decision": "WATCH", "REASON": "WATCH", "TipoScommessa": "2", "Odds_Bet": 4.7, "Value_Max": 0.0429, "EV": 0.0429, "Kelly": 0.0029, "Confidence": 0.9491, "Stake": 2.9, "lam_tot": 3.0197, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.1395, "ValueX": -0.0747, "Value2": 0.0429, "Value_OV25": -0.041, "Value_UN25": -0.1415, "Value_GG": -0.0258, "Value_NG": -0.1761, "Prob_sel": 0.221892}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Almeria", "Away": "Valladolid", "Home_orig": "Almería", "Away_orig": "Real Valladolid", "Campionato": "La Liga 2", "Match_ID": "20260531_ALMER_A_REAL_VALLADO", "Odd1": 1.4, "OddX": 4.4, "Odd2": 6.0, "Odd_OV25": 1.55, "Odd_UN25": 2.25, "Odd_GG": 1.7, "Odd_NG": 1.93, "lam_h": 3.6717, "lam_a": 1.2769, "Prob1": 0.806037, "ProbX": 0.10702, "Prob2": 0.086943, "Prob_OV25": 0.87076, "Prob_UN25": 0.1292, "Prob_GG": 0.702732, "Prob_NG": 0.2973, "Decision": "BET", "REASON": "BET", "TipoScommessa": "1", "Odds_Bet": 1.4, "Value_Max": 0.1285, "EV": 0.1285, "Kelly": 0.0803, "Confidence": 0.6978, "Stake": 80.3, "lam_tot": 4.9486, "_modello": "modello", "mu_H": 1.38, "mu_A": 1.09, "RISK_FLAG": "RISK", "AQ_FILTRATO": 0.1285, "Value1": 0.1285, "ValueX": -0.5291, "Value2": -0.4783, "Value_OV25": 0.3497, "Value_UN25": -0.7093, "Value_GG": 0.1946, "Value_NG": -0.4262, "Prob_sel": 0.806037}, {"Date": "DOMENICA 31 MAGGIO 2026", "Home": "Degerfors", "Away": "Brommapojkarna", "Home_orig": "Degerfors", "Away_orig": "Brommapojkarna", "Campionato": "SVEZIA", "Match_ID": "20260531_DEGERFORS_BROMMAPOJKAR", "Odd1": 2.3, "OddX": 3.1, "Odd2": 3.05, "Odd_OV25": 2.0, "Odd_UN25": 1.7, "Odd_GG": 1.8, "Odd_NG": 1.92, "lam_h": 1.35, "lam_a": 1.1, "lam_tot": 2.45, "Prob1": 0.4246, "ProbX": 0.2706, "Prob2": 0.3047, "Prob_OV25": 0.4433, "Prob_UN25": 0.5567, "Prob_GG": 0.4942, "Prob_NG": 0.5058, "mu_H": 1.4, "mu_A": 1.15, "Confidence": 0.3, "Value_Max": null, "TipoScommessa": null, "Odds_Bet": null, "Kelly": null, "Stake": null, "Decision": "SKIP", "REASON": "stima_media_SVEZIA_no_Degerfors_no_Brommapojkarna", "_modello": "modello", "RISK_FLAG": "OK", "AQ_FILTRATO": null, "Value1": -0.0234, "ValueX": -0.1611, "Value2": -0.0707, "Value_OV25": -0.1134, "Value_UN25": -0.0536, "Value_GG": -0.1104, "Value_NG": -0.0289, "Prob_sel": null}];
-var DATA_TIMESTAMP = "25/05/2026 22:22";
+// ════════════════════════════════════════════════════════════
+//  UTILITÀ DATE
+// ════════════════════════════════════════════════════════════
+function parseDate(s) {
+  if (!s) return null;
+  s = String(s).trim();
+  // ISO: 2026-05-24
+  var m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(+m[1], +m[2]-1, +m[3]);
+  // Italiano: "SABATO 23 MAGGIO 2026"
+  var MESI = {GENNAIO:0,FEBBRAIO:1,MARZO:2,APRILE:3,MAGGIO:4,GIUGNO:5,
+              LUGLIO:6,AGOSTO:7,SETTEMBRE:8,OTTOBRE:9,NOVEMBRE:10,DICEMBRE:11};
+  var su = s.toUpperCase();
+  for (var mese in MESI) {
+    if (su.indexOf(mese) >= 0) {
+      var nums = su.match(/\d+/g) || [];
+      var g = nums.find(n => +n <= 31) || 1;
+      var a = nums.find(n => n.length === 4 && +n >= 2020) || new Date().getFullYear();
+      return new Date(+a, MESI[mese], +g);
+    }
+  }
+  return null;
+}
+
+function formatDate(s) {
+  var d = parseDate(s);
+  if (!d) return s || '—';
+  var giorni = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+  var mesi   = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  return giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()];
+}
+
+function isToday(s) {
+  var d = parseDate(s);
+  if (!d) return false;
+  var now = new Date();
+  return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+}
+
+// ════════════════════════════════════════════════════════════
+//  RENDER PRINCIPALE
+// ════════════════════════════════════════════════════════════
+function renderCards() {
+  var today = new Date();
+  today.setHours(0,0,0,0);
+
+  // Filtra
+  var data = LIVE_DATA.filter(function(r) {
+    var d = parseDate(r.Date);
+    var isFuture = !d || d >= today;
+    if (!isFuture) return false;
+    if (currentFilter === 'BET')   return r.Decision === 'BET';
+    if (currentFilter === 'WATCH') return r.Decision === 'WATCH';
+    if (currentFilter === 'SKIP')  return r.Decision === 'SKIP';
+    if (currentFilter === 'OGGI')  return isToday(r.Date);
+    return true;
+  });
+
+  // Ordina: BET > WATCH > SKIP, poi per data e ora
+  data.sort(function(a,b) {
+    var ord = {BET:0,WATCH:1,SKIP:2};
+    var oa = ord[a.Decision]||2, ob = ord[b.Decision]||2;
+    if (oa !== ob) return oa - ob;
+    var da = parseDate(a.Date)||new Date(9999,0);
+    var db = parseDate(b.Date)||new Date(9999,0);
+    if (da - db !== 0) return da - db;
+    return (a.ORA||'').localeCompare(b.ORA||'');
+  });
+
+  var container = document.getElementById('cards-container');
+
+  if (data.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">Nessuna partita</div><div class="empty-sub">Cambia filtro o aggiorna l\'engine</div></div>';
+    return;
+  }
+
+  container.innerHTML = data.map(function(r, idx) {
+    return buildCard(r, idx);
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+//  COSTRUZIONE CARD
+// ════════════════════════════════════════════════════════════
+function buildCard(r, idx) {
+  var dec = (r.Decision||'SKIP').toUpperCase();
+  var decClass = dec === 'BET' ? 'bet' : dec === 'WATCH' ? 'watch' : 'skip';
+  var decLabel = dec === 'BET' ? '🎯 BET' : dec === 'WATCH' ? '👁 WATCH' : '— SKIP';
+
+  // ── HEADER ──
+  var dateStr = formatDate(r.Date);
+  var timeStr = r.ORA ? r.ORA : '';
+  var timeHtml = timeStr
+    ? '<span class="match-time">⏰ ' + timeStr + '</span>'
+    : '';
+
+  // ── SQUADRE ──
+  var home = r.Home || '?';
+  var away = r.Away || '?';
+
+  // ── METRICHE ──
+  var value = r.Value_Max != null ? (r.Value_Max * 100).toFixed(1) + '%' : '—';
+  var conf  = r.Confidence != null ? (r.Confidence * 100).toFixed(0) + '%' : '—';
+  var ev    = r.EV != null ? (r.EV > 0 ? '+' : '') + (r.EV * 100).toFixed(1) + '%' : '—';
+  var kelly = r.Kelly != null ? (r.Kelly * 100).toFixed(1) + '%' : '—';
+  var lh    = r.lam_h != null ? r.lam_h.toFixed(2) : '—';
+  var la    = r.lam_a != null ? r.lam_a.toFixed(2) : '—';
+
+  var valueClass = r.Value_Max >= 0.12 ? 'pos' : r.Value_Max >= 0.08 ? 'warn' : 'neg';
+  var confClass  = r.Confidence >= 0.65 ? 'pos' : r.Confidence >= 0.55 ? 'warn' : 'neg';
+
+  // ── PROBABILITÀ 1X2 ──
+  var p1 = r.Prob1 || 0, px = r.ProbX || 0, p2 = r.Prob2 || 0;
+  var pSum = p1 + px + p2 || 1;
+  var p1p = (p1/pSum*100).toFixed(0);
+  var pxp = (px/pSum*100).toFixed(0);
+  var p2p = (p2/pSum*100).toFixed(0);
+
+  // ── SCOMMESSA ──
+  var betHtml = '';
+  if (dec === 'BET' || dec === 'WATCH') {
+    var tipo  = r.TipoScommessa || '—';
+    var quota = r.Odds_Bet ? parseFloat(r.Odds_Bet).toFixed(2) : '—';
+    var stake = r.Stake ? '€' + parseFloat(r.Stake).toFixed(0) : '';
+    betHtml = '<div class="bet-row">'
+      + '<span class="bet-tipo">' + tipo + '</span>'
+      + (stake ? '<span class="bet-stake">' + stake + '</span>' : '')
+      + '<span class="bet-quota">@' + quota + '</span>'
+      + '</div>';
+  }
+
+  // ── RISULTATI ESATTI ──
+  var scoresHtml = '';
+  var sp = r.score_probs || [];
+  if (sp.length > 0) {
+    scoresHtml = '<div class="scores-title">🎲 Risultati esatti più probabili</div>'
+      + '<div class="scores-grid">'
+      + sp.slice(0,6).map(function(s, i) {
+          var esitoCls = s.esito === '1' ? 'e1' : s.esito === 'X' ? 'eX' : 'e2';
+          return '<div class="score-chip' + (i===0?' top1':'') + '">'
+            + '<div class="score-result">' + s.score + '</div>'
+            + '<div class="score-pct">' + s.prob + '%</div>'
+            + '<div class="score-esito ' + esitoCls + '">' + s.esito + '</div>'
+            + '</div>';
+        }).join('')
+      + '</div>';
+  }
+
+  // ── FORMA ──
+  function buildForma(forma, label) {
+    if (!forma || forma.length === 0) return '';
+    return '<div class="forma-section">'
+      + '<div class="forma-team-label">' + label + '</div>'
+      + '<div class="forma-row">'
+      + forma.slice(0,5).map(function(f) {
+          return '<div class="forma-pill ' + f.ris + '">' + f.ris + '</div>';
+        }).join('')
+      + '<div style="margin-left:4px">'
+      + forma.slice(0,5).map(function(f) {
+          return '<div class="forma-score"><b>' + f.gf + '-' + f.gs + '</b> vs ' + f.opp + '</div>';
+        }).join('')
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+  var formaHtml = buildForma(r.forma_home, '🏠 ' + home)
+                + buildForma(r.forma_away, '✈️ ' + away);
+
+  // ── QUOTE BOX ──
+  var quotesHtml = '<div class="scores-title" style="margin-top:8px">📈 Quote mercato</div>'
+    + '<div class="odds-row">'
+    + '<div class="odd-chip"><div class="odd-label">1</div><div class="odd-value">' + (r.Odd1 ? parseFloat(r.Odd1).toFixed(2) : '—') + '</div></div>'
+    + '<div class="odd-chip"><div class="odd-label">X</div><div class="odd-value">' + (r.OddX ? parseFloat(r.OddX).toFixed(2) : '—') + '</div></div>'
+    + '<div class="odd-chip"><div class="odd-label">2</div><div class="odd-value">' + (r.Odd2 ? parseFloat(r.Odd2).toFixed(2) : '—') + '</div></div>'
+    + '<div class="odd-chip"><div class="odd-label">OV25</div><div class="odd-value">' + (r.Odd_OV25 ? parseFloat(r.Odd_OV25).toFixed(2) : '—') + '</div></div>'
+    + '<div class="odd-chip"><div class="odd-label">GG</div><div class="odd-value">' + (r.Odd_GG ? parseFloat(r.Odd_GG).toFixed(2) : '—') + '</div></div>'
+    + '</div>';
+
+  var expandId = 'exp-' + idx;
+
+  return '<div class="card ' + decClass + '">'
+    // HEAD
+    + '<div class="card-head">'
+    + '<div class="card-meta">'
+    + '<span class="league-tag">⚽ ' + (r.Campionato||'—') + '</span>'
+    + '<div class="match-datetime">'
+    + '<span class="match-date">' + dateStr + '</span>'
+    + timeHtml
+    + '</div>'
+    + '</div>'
+    + '<div class="teams">'
+    + '<span class="team-name">' + home + '</span>'
+    + '<span class="vs-sep">vs</span>'
+    + '<span class="team-name away">' + away + '</span>'
+    + '</div>'
+    + '</div>'
+    // BODY
+    + '<div class="card-body">'
+    + betHtml
+    // Metriche
+    + '<div class="metrics">'
+    + '<div class="metric"><div class="metric-label">Value</div><div class="metric-value ' + valueClass + '">' + value + '</div></div>'
+    + '<div class="metric"><div class="metric-label">Conf.</div><div class="metric-value ' + confClass + '">' + conf + '</div></div>'
+    + '<div class="metric"><div class="metric-label">EV</div><div class="metric-value">' + ev + '</div></div>'
+    + '<div class="metric"><div class="metric-label">Kelly</div><div class="metric-value">' + kelly + '</div></div>'
+    + '<div class="metric"><div class="metric-label">λ Casa</div><div class="metric-value">' + lh + '</div></div>'
+    + '<div class="metric"><div class="metric-label">λ Trasferta</div><div class="metric-value">' + la + '</div></div>'
+    + '</div>'
+    // Barra probabilità
+    + '<div class="probs-bar">'
+    + '<div class="prob-seg-1" style="width:' + p1p + '%"></div>'
+    + '<div class="prob-seg-x" style="width:' + pxp + '%"></div>'
+    + '<div class="prob-seg-2" style="width:' + p2p + '%"></div>'
+    + '</div>'
+    + '<div class="prob-labels">'
+    + '<div class="prob-label"><b>' + p1p + '%</b>Casa</div>'
+    + '<div class="prob-label"><b>' + pxp + '%</b>Pareggio</div>'
+    + '<div class="prob-label"><b>' + p2p + '%</b>Trasferta</div>'
+    + '</div>'
+    + '</div>'
+    // EXPANDABLE
+    + '<button class="expand-btn" onclick="toggleExpand(\'' + expandId + '\',this)">'
+    + '<span>Dettagli · Risultati esatti · Forma</span>'
+    + '<span class="expand-icon">▾</span>'
+    + '</button>'
+    + '<div class="expand-content" id="' + expandId + '">'
+    + scoresHtml
+    + formaHtml
+    + quotesHtml
+    + '</div>'
+    + '</div>';
+}
+
+function toggleExpand(id, btn) {
+  var el = document.getElementById(id);
+  var isOpen = el.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+}
+
+// ════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════
+function init() {
+  document.getElementById('ts').textContent = DATA_TIMESTAMP;
+  var tot   = LIVE_DATA.length;
+  var bets  = LIVE_DATA.filter(function(r){ return r.Decision==='BET'; }).length;
+  var watch = LIVE_DATA.filter(function(r){ return r.Decision==='WATCH'; }).length;
+  document.getElementById('n-tot').textContent   = tot;
+  document.getElementById('n-bet').textContent   = bets;
+  document.getElementById('n-watch').textContent = watch;
+  renderCards();
+}
+
+window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>

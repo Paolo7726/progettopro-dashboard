@@ -108,8 +108,8 @@ body{background:var(--bg);color:var(--txt);font-family:monospace;min-height:100v
   </div>
   <div class="chips" id="chips">
     <button class="chip on" onclick="sf('',this)">Tutti</button>
-    <button class="chip" onclick="sv(this)">Solo VALUE+</button>
-    <button class="chip" onclick="sb(this)">Solo BET</button>
+    <button class="chip" id="btn-vc" onclick="sv(this)">Solo VALUE+</button>
+    <button class="chip" id="btn-b" onclick="sb(this)">Solo BET</button>
   </div>
 </div>
 <div class="list" id="list"></div>
@@ -179,8 +179,8 @@ function buildChips(){
   var counts={};
   DATA.forEach(function(r){var c=r.Campionato||'';counts[c]=(counts[c]||0)+1;});
   var el=document.getElementById('chips');
-  var btnVC=el.querySelector('.chip:nth-child(2)');
-  var btnB=el.querySelector('.chip:nth-child(3)');
+  var btnVC=document.getElementById('btn-vc');
+  var btnB=document.getElementById('btn-b');
   el.querySelectorAll('.lchip').forEach(function(b){b.remove();});
   var ORDER=['Serie A','Serie B','Premier League','Championship','La Liga','La Liga 2','Bundesliga','Bundesliga 2','Ligue 1','Eredivisie','Jupiler Pro','Super Lig','Primeira Liga'];
   ORDER.forEach(function(k){
@@ -204,8 +204,8 @@ function buildChips(){
 }
 
 function sf(l,el){CF=l;VO=false;BO=false;document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');});if(el)el.classList.add('on');render();}
-function sv(el){VO=!VO;BO=false;document.querySelectorAll('.chip:nth-child(2),.chip:nth-child(3)').forEach(function(c){c.classList.remove('on');});if(VO)el.classList.add('on');render();}
-function sb(el){BO=!BO;VO=false;document.querySelectorAll('.chip:nth-child(2),.chip:nth-child(3)').forEach(function(c){c.classList.remove('on');});if(BO)el.classList.add('on');render();}
+function sv(el){VO=!VO;BO=false;document.querySelectorAll('#btn-vc,#btn-b').forEach(function(c){c.classList.remove('on');});if(VO)el.classList.add('on');render();}
+function sb(el){BO=!BO;VO=false;document.querySelectorAll('#btn-vc,#btn-b').forEach(function(c){c.classList.remove('on');});if(BO)el.classList.add('on');render();}
 
 function render(){
   var fil=DATA.filter(function(r){

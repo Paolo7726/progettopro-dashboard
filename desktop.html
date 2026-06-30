@@ -1042,7 +1042,7 @@ function buildLeagueChips() {
   if (!container) return;
 
   // Rimuovi solo chip campionato (non chip-all, non value-filter, non top5-filter)
-  container.querySelectorAll('.chip:not(#chip-all):not(.value-filter):not(.top5-filter)').forEach(b => {
+  container.querySelectorAll('.chip:not(#chip-all):not(.value-filter):not(.top5-filter):not(.storico-filter)').forEach(b => {
     b.remove();
   });
   const divider = container.querySelector('.divider');

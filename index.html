@@ -379,7 +379,7 @@ function renderTop5(lw){
 function render(){
 if(t5o){renderTop5(document.getElementById('lw'));return;}
 if(stoo){renderStorico(document.getElementById('lw'));return;}
-const ti=new Date().toISOString().slice(0,10);let fil=DATA.filter(m=>{if(!m.home)return false;if(m.date&&m.date<ti)return false;if(cf&&m.league!==cf)return false;if(vo&&(m.v1||0)<=0&&(m.vx||0)<=0&&(m.v2||0)<=0)return false;if(bo&&m.dec!=='BET')return false;return true;});
+let fil=DATA.filter(m=>{if(!m.home)return false;if(cf&&m.league!==cf)return false;if(vo&&(m.v1||0)<=0&&(m.vx||0)<=0&&(m.v2||0)<=0)return false;if(bo&&m.dec!=='BET')return false;return true;});
 document.getElementById('st').textContent=fil.length;document.getElementById('sb').textContent=fil.filter(m=>m.dec==='BET').length;document.getElementById('sw').textContent=fil.filter(m=>m.dec==='WATCH').length;
 const bd={};fil.forEach(m=>{(bd[m.date]=bd[m.date]||[]).push(m);});
 const lw=document.getElementById('lw');

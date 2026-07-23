@@ -109,8 +109,6 @@ html,body{height:100%;overflow:hidden;font-family:'DM Mono',monospace;background
 .t5teams{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:8px;line-height:1.3;}
 .t5teams .vs{color:var(--muted);font-size:10px;font-weight:400;margin:0 4px;}
 .t5date{font-size:9px;color:var(--muted);margin-bottom:6px;}
-.datebar{display:flex;gap:8px;padding:0 12px 8px;align-items:center;}
-.datebar .chip{flex-shrink:0;}
 #date-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;}
 .t5pills{display:flex;gap:6px;flex-wrap:wrap;}
 .t5pill{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;font-family:'Syne',sans-serif;}
@@ -201,11 +199,10 @@ html,body{height:100%;overflow:hidden;font-family:'DM Mono',monospace;background
   <button class="chip bc" onclick="tb(this)">Solo BET</button>
   <button class="chip t5" id="chip-t5" onclick="tt5(this)">★ TOP 5</button>
   <button class="chip sto" id="chip-sto" onclick="tsto(this)">📊 Storico</button>
-</div>
-<div class="datebar">
+  <span style="width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 2px;"></span>
   <button class="chip active" id="chip-date-all" onclick="clearDateFilter()">Tutte</button>
   <button class="chip" id="chip-date-pick" onclick="openDatePicker()">📅</button>
-  <span id="date-lbl" style="font-size:10px;color:var(--muted)"></span>
+  <span id="date-lbl" style="font-size:10px;color:var(--muted);flex-shrink:0;"></span>
   <input type="date" id="date-input" onchange="dateChosen(this.value)">
 </div>
 <div class="lwrap" id="lw"></div>
@@ -255,7 +252,7 @@ function buildChips(){
   const fb=document.getElementById('fb');
   if(!fb)return;
   // rimuovi chip campionato precedenti — proteggi vc, bc, t5, chip-all-m
-  fb.querySelectorAll('.chip:not(.vc):not(.bc):not(.t5):not(.sto):not(#chip-all-m)').forEach(b=>b.remove());
+  fb.querySelectorAll('.chip:not(.vc):not(.bc):not(.t5):not(.sto):not(#chip-all-m):not(#chip-date-all):not(#chip-date-pick)').forEach(b=>b.remove());
   // inserisci chip campionato prima del primo pulsante fisso (Solo VALUE+)
   const vcBtn=fb.querySelector('.vc');
   const total=(window.LIVE_DATA||[]).length;

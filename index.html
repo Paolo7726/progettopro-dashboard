@@ -108,6 +108,10 @@ html,body{height:100%;overflow:hidden;font-family:'DM Mono',monospace;background
 .t5league{font-size:9px;font-weight:700;color:#f7b731;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
 .t5teams{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:8px;line-height:1.3;}
 .t5teams .vs{color:var(--muted);font-size:10px;font-weight:400;margin:0 4px;}
+.t5date{font-size:9px;color:var(--muted);margin-bottom:6px;}
+.datebar{display:flex;gap:8px;padding:0 12px 8px;align-items:center;}
+.datebar .chip{flex-shrink:0;}
+#date-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;}
 .t5pills{display:flex;gap:6px;flex-wrap:wrap;}
 .t5pill{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;font-family:'Syne',sans-serif;}
 .t5pill.merc{background:rgba(0,212,170,.15);color:var(--accent);}
@@ -198,6 +202,12 @@ html,body{height:100%;overflow:hidden;font-family:'DM Mono',monospace;background
   <button class="chip t5" id="chip-t5" onclick="tt5(this)">★ TOP 5</button>
   <button class="chip sto" id="chip-sto" onclick="tsto(this)">📊 Storico</button>
 </div>
+<div class="datebar">
+  <button class="chip active" id="chip-date-all" onclick="clearDateFilter()">Tutte</button>
+  <button class="chip" id="chip-date-pick" onclick="openDatePicker()">📅</button>
+  <span id="date-lbl" style="font-size:10px;color:var(--muted)"></span>
+  <input type="date" id="date-input" onchange="dateChosen(this.value)">
+</div>
 <div class="lwrap" id="lw"></div>
 <div class="panel" id="pn">
   <div class="pbk" onclick="cp()"><span class="ba">←</span>
@@ -206,7 +216,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Mono',monospace;background
   <div class="pb" id="pb"></div>
 </div>
 <script>
-let DATA=[],cf='',vo=false,bo=false,t5o=false,stoo=false;
+let DATA=[],cf='',vo=false,bo=false,t5o=false,stoo=false,df='';
 const LC={'Serie A':'#4a9eff','Serie B':'#00d4aa','Serie C':'#f7b731','Premier League':'#a855f7','La Liga':'#e74c5e','La Liga 2':'#f97316','Bundesliga':'#f97316','Bundesliga 2':'#f59e0b','Ligue 1':'#06b6d4','Eredivisie':'#10b981','Jupiler Pro':'#4a9eff','Super Lig':'#e74c5e','Primeira Liga':'#22c55e','Allsvenskan':'#0ea5e9','SVEZIA':'#0ea5e9','Veikkausliiga':'#38bdf8','FINLANDIA':'#38bdf8','J1 League':'#f43f5e','GIAPPONE':'#f43f5e','Chinese Super League':'#fb923c','CINA':'#fb923c','League of Ireland':'#16a34a','IRLANDA':'#16a34a','Eliteserien':'#c026d3','NORVEGIA':'#c026d3','A-League':'#eab308','AUSTRIA':'#eab308','Primera Division':'#ec4899','ARGENTINA':'#ec4899'};
 function pd(s){if(!s)return'';if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);const dm=/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/.exec(s);if(dm)return dm[3]+'-'+dm[2].padStart(2,'0')+'-'+dm[1].padStart(2,'0');const M={GENNAIO:'01',FEBBRAIO:'02',MARZO:'03',APRILE:'04',MAGGIO:'05',GIUGNO:'06',LUGLIO:'07',AGOSTO:'08',SETTEMBRE:'09',OTTOBRE:'10',NOVEMBRE:'11',DICEMBRE:'12'};let x=s.toUpperCase().trim().replace(/\b(202)\b(?!\d)/g,'2026');const p=x.split(/\s+/);let g,m,a;if(p.length>=4){g=p[1];m=M[p[2]]||'01';a=p[3];}else if(p.length>=3){g=p[0];m=M[p[1]]||'01';a=p[2];}else return s;if(a&&a.length===3)a+='6';if(!a||a.length<4)a=new Date().getFullYear().toString();return`${a}-${m}-${g.padStart(2,'0')}`;}
 function nc(c){const MP={BELGIO:'Jupiler Pro',TURCHIA:'Super Lig',PORTOGALLO:'Primeira Liga',ITALIA:'Serie A',INGHILTERRA:'Premier League',SPAGNA:'La Liga',GERMANIA:'Bundesliga',FRANCIA:'Ligue 1',OLANDA:'Eredivisie','PAESI BASSI':'Eredivisie',SVEZIA:'Allsvenskan',FINLANDIA:'Veikkausliiga',GIAPPONE:'J1 League',CINA:'Chinese Super League',IRLANDA:'League of Ireland',IRL:'League of Ireland','LEAGUE OF IRELAND':'League of Ireland','PREMIER DIVISION':'League of Ireland',NORVEGIA:'Eliteserien',NORWAY:'Eliteserien',AUSTRIA:'A-League','AUSTRIA BUNDESLIGA':'A-League',ARGENTINA:'Primera Division'};return MP[(c||'').toUpperCase()]||c;}
@@ -263,12 +273,17 @@ function buildChips(){
   });
 }
 
-function sf(l,el){cf=l;vo=false;bo=false;t5o=false;stoo=false;document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));if(el)el.classList.add('active');render();}
+function sf(l,el){cf=l;vo=false;bo=false;t5o=false;stoo=false;document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));if(el)el.classList.add('active');reactivateDateChip();render();}
 function tv(el){vo=!vo;bo=false;t5o=false;stoo=false;document.querySelectorAll('.vc,.bc,.t5,.sto').forEach(c=>c.classList.remove('active'));if(vo)el.classList.add('active');render();}
 function tb(el){bo=!bo;vo=false;t5o=false;stoo=false;document.querySelectorAll('.vc,.bc,.t5,.sto').forEach(c=>c.classList.remove('active'));if(bo)el.classList.add('active');render();}
-function tt5(el){t5o=!t5o;vo=false;bo=false;stoo=false;cf='';document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));if(t5o)el.classList.add('active');else{const ca=document.getElementById('chip-all-m');if(ca)ca.classList.add('active');}render();}
+function tt5(el){t5o=!t5o;vo=false;bo=false;stoo=false;cf='';document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));if(t5o)el.classList.add('active');else{const ca=document.getElementById('chip-all-m');if(ca)ca.classList.add('active');}reactivateDateChip();render();}
 
-function tsto(el){stoo=!stoo;vo=false;bo=false;t5o=false;cf='';document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));if(stoo)el.classList.add('active');else{const ca=document.getElementById('chip-all-m');if(ca)ca.classList.add('active');}render();}
+function tsto(el){stoo=!stoo;vo=false;bo=false;t5o=false;cf='';document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));if(stoo)el.classList.add('active');else{const ca=document.getElementById('chip-all-m');if(ca)ca.classList.add('active');}reactivateDateChip();render();}
+function reactivateDateChip(){const a=document.getElementById('chip-date-all'),p=document.getElementById('chip-date-pick');if(!a||!p)return;if(df){a.classList.remove('active');p.classList.add('active');}else{a.classList.add('active');p.classList.remove('active');}}
+function clearDateFilter(){df='';document.getElementById('date-input').value='';const lbl=document.getElementById('date-lbl');if(lbl)lbl.textContent='';document.getElementById('chip-date-all').classList.add('active');document.getElementById('chip-date-pick').classList.remove('active');render();}
+function openDatePicker(){const inp=document.getElementById('date-input');if(inp.showPicker){try{inp.showPicker();return;}catch(e){}}inp.click();}
+function dateChosen(v){if(!v)return;df=v;document.getElementById('chip-date-all').classList.remove('active');document.getElementById('chip-date-pick').classList.add('active');const lbl=document.getElementById('date-lbl');if(lbl){try{const d=new Date(v+'T12:00:00');let s=d.toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'});lbl.textContent=s;}catch(e){lbl.textContent=v;}}render();}
+function fmtDateLabel(s){if(!s)return'';return s.toString().toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase());}
 
 function renderStorico(lw){
   const sd=window.LIVE_STORICO;
@@ -354,8 +369,9 @@ function renderStorico(lw){
   lw.innerHTML=h;
 }
 function renderTop5(lw){
-  const top5=window.LIVE_TOP5||[];
-  if(!top5.length){lw.innerHTML='<div class="empty"><p>Nessuna partita TOP 5 oggi</p></div>';return;}
+  let top5=window.LIVE_TOP5||[];
+  if(df) top5=top5.filter(r=>pd(r.Date||'')===df);
+  if(!top5.length){lw.innerHTML='<div class="empty"><p>Nessuna partita TOP 5'+(df?' in questo giorno':' oggi')+'</p></div>';return;}
   let h='<div class="top5-wrap"><div class="top5-hdr"><span>★</span> Top 5 della giornata</div>';
   top5.forEach(r=>{
     const val=r.Value_Max||r.AQ_FILTRATO||0;
@@ -366,6 +382,7 @@ function renderTop5(lw){
     h+=`<div class="t5card">
       <div class="t5rank">#${r._top5_rank||''}</div>
       <div class="t5league">${r.Campionato||''}</div>
+      <div class="t5date">${fmtDateLabel(r.Date)}</div>
       <div class="t5teams">${r.Home||''}<span class="vs">vs</span>${r.Away||''}</div>
       <div class="t5pills">
         <span class="t5pill merc">${merc}</span>
@@ -382,7 +399,7 @@ function renderTop5(lw){
 function render(){
 if(t5o){renderTop5(document.getElementById('lw'));return;}
 if(stoo){renderStorico(document.getElementById('lw'));return;}
-let fil=DATA.filter(m=>{if(!m.home)return false;if(cf&&m.league!==cf)return false;if(vo&&(m.v1||0)<=0&&(m.vx||0)<=0&&(m.v2||0)<=0)return false;if(bo&&m.dec!=='BET')return false;return true;});
+let fil=DATA.filter(m=>{if(!m.home)return false;if(cf&&m.league!==cf)return false;if(df&&m.date!==df)return false;if(vo&&(m.v1||0)<=0&&(m.vx||0)<=0&&(m.v2||0)<=0)return false;if(bo&&m.dec!=='BET')return false;return true;});
 document.getElementById('st').textContent=fil.length;document.getElementById('sb').textContent=fil.filter(m=>m.dec==='BET').length;document.getElementById('sw').textContent=fil.filter(m=>m.dec==='WATCH').length;
 const bd={};fil.forEach(m=>{(bd[m.date]=bd[m.date]||[]).push(m);});
 const lw=document.getElementById('lw');

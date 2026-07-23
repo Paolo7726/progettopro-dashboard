@@ -579,6 +579,13 @@ body {
   <button class="chip top5-filter" id="chip-top5" onclick="filterTop5()">★ TOP 5</button>
   <button class="chip storico-filter" id="chip-storico" onclick="filterStorico()">📊 Storico</button>
 </div>
+<div class="filters" id="date-filters" style="padding-top:0;">
+  <span class="filter-label">Giorno:</span>
+  <button class="chip active" id="chip-date-all" onclick="clearDateFilter()">Tutte</button>
+  <button class="chip" id="chip-date-pick" onclick="openDatePicker()">📅</button>
+  <span id="date-lbl" style="font-size:11px;color:var(--muted)"></span>
+  <input type="date" id="date-input" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;" onchange="dateChosen(this.value)">
+</div>
 
 <!-- Main -->
 <div class="main">
@@ -612,6 +619,7 @@ let valueOnly = false;
 let betOnly = false;
 let top5Only = false;
 let storicoOnly = false;
+let dateFilter = '';
 let selectedId = null;
 
 function computeOverUnder(lh, la) {
@@ -701,6 +709,7 @@ function renderList() {
   let filtered = DEMO_DATA.filter(m => {
     if (!m.home || !m.away) return false;
     if (currentFilter && m.league !== currentFilter) return false;
+    if (dateFilter && m.date !== dateFilter) return false;
     if (valueOnly && (m.value1||0) <= 0 && (m.valuex||0) <= 0 && (m.value2||0) <= 0) return false;
     if (betOnly && m.decision !== 'BET') return false;
     return true;
@@ -1084,6 +1093,7 @@ function filterLeague(league) {
       if (b.dataset.league === league) b.classList.add('active');
     });
   }
+  reactivateDateChip();
   renderList();
 }
 function filterValue() {
@@ -1114,6 +1124,7 @@ function filterTop5() {
   const t5btn = document.getElementById('chip-top5');
   if (top5Only && t5btn) t5btn.classList.add('active');
   else { const ca = document.getElementById('chip-all'); if(ca) ca.classList.add('active'); }
+  reactivateDateChip();
   renderList();
 }
 
@@ -1127,7 +1138,47 @@ function filterStorico() {
   const stbtn = document.getElementById('chip-storico');
   if (storicoOnly && stbtn) stbtn.classList.add('active');
   else { const ca = document.getElementById('chip-all'); if(ca) ca.classList.add('active'); }
+  reactivateDateChip();
   renderList();
+}
+
+function reactivateDateChip() {
+  const a = document.getElementById('chip-date-all'), p = document.getElementById('chip-date-pick');
+  if (!a || !p) return;
+  if (dateFilter) { a.classList.remove('active'); p.classList.add('active'); }
+  else { a.classList.add('active'); p.classList.remove('active'); }
+}
+function clearDateFilter() {
+  dateFilter = '';
+  const inp = document.getElementById('date-input'); if (inp) inp.value = '';
+  const lbl = document.getElementById('date-lbl'); if (lbl) lbl.textContent = '';
+  const a = document.getElementById('chip-date-all'), p = document.getElementById('chip-date-pick');
+  if (a) a.classList.add('active');
+  if (p) p.classList.remove('active');
+  renderList();
+}
+function openDatePicker() {
+  const inp = document.getElementById('date-input');
+  if (!inp) return;
+  if (inp.showPicker) { try { inp.showPicker(); return; } catch(e) {} }
+  inp.click();
+}
+function dateChosen(v) {
+  if (!v) return;
+  dateFilter = v;
+  const a = document.getElementById('chip-date-all'), p = document.getElementById('chip-date-pick');
+  if (a) a.classList.remove('active');
+  if (p) p.classList.add('active');
+  const lbl = document.getElementById('date-lbl');
+  if (lbl) {
+    try { const d = new Date(v+'T12:00:00'); lbl.textContent = d.toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'}); }
+    catch(e) { lbl.textContent = v; }
+  }
+  renderList();
+}
+function fmtDateLabelDesk(s) {
+  if (!s) return '';
+  return s.toString().toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
 }
 
 function renderStoricoSection() {
@@ -1218,8 +1269,9 @@ function renderStoricoSection() {
 }
 
 function renderTop5Section() {
-  const top5 = window.LIVE_TOP5 || [];
-  if (!top5.length) return '<p style="color:var(--muted);padding:20px;font-size:13px">Nessuna partita TOP 5 disponibile oggi.</p>';
+  let top5 = window.LIVE_TOP5 || [];
+  if (dateFilter) top5 = top5.filter(r => parseDataItaliana(r.Date || '') === dateFilter);
+  if (!top5.length) return `<p style="color:var(--muted);padding:20px;font-size:13px">Nessuna partita TOP 5${dateFilter ? ' in questo giorno' : ' disponibile oggi'}.</p>`;
   let h = '<div class="top5-section"><div class="top5-section-hdr"><span>★</span> Top 5 della giornata — selezione ottimale</div>';
   top5.forEach(r => {
     const val = r.Value_Max || r.AQ_FILTRATO || 0;
@@ -1230,6 +1282,7 @@ function renderTop5Section() {
     h += `<div class="t5-card">
       <div class="t5-rank">#${r._top5_rank || ''}</div>
       <div class="t5-league">${r.Campionato || ''}</div>
+      <div class="t5-date" style="font-size:10px;color:var(--muted);margin-bottom:4px;">${fmtDateLabelDesk(r.Date)}</div>
       <div class="t5-teams">${r.Home || ''}<span class="vs">vs</span>${r.Away || ''}</div>
       <div class="t5-pills">
         <span class="t5-pill merc">${merc}</span>

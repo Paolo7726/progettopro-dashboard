@@ -1,12 +1,16 @@
 // Service Worker — Progetto Pro Match Scanner
-// Strategia: stale-while-revalidate. Mostra subito la versione in cache
-// (apertura istantanea anche offline) e aggiorna in background dalla rete,
-// cosa importante perché LIVE_DATA cambia ad ogni engine.py.
+//
+// STRATEGIA (v2):
+// - HTML (index.html / navigazioni): NETWORK-FIRST. Ogni apertura dell'app
+//   scarica sempre l'ultima versione con i dati più recenti (LIVE_DATA
+//   aggiornato da engine.py). La cache serve solo come fallback se sei
+//   offline — così l'app si aggiorna da sola ad ogni /dashboard, senza
+//   bisogno di disinstallare/reinstallare.
+// - Asset statici (icone, manifest.json): CACHE-FIRST. Non cambiano quasi
+//   mai, quindi si caricano istantaneamente dalla cache.
 
-const CACHE_NAME = 'progettopro-v1';
-const ASSETS = [
-  './',
-  './index.html',
+const CACHE_NAME = 'progettopro-v2';
+const STATIC_ASSETS = [
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
@@ -14,7 +18,7 @@ const ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
   );
   self.skipWaiting();
 });
@@ -29,19 +33,35 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
+  const req = event.request;
+  if (req.method !== 'GET') return;
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const network = fetch(event.request)
-        .then((response) => {
-          if (response && response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          }
-          return response;
+  const isHTML = req.mode === 'navigate' ||
+                 (req.headers.get('accept') || '').includes('text/html');
+
+  if (isHTML) {
+    // Sempre la versione più recente dalla rete. Fallback alla cache solo
+    // se sei offline (nessuna connessione).
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          return res;
         })
-        .catch(() => cached);
+        .catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // Asset statici: cache-first, aggiornata in background per la prossima volta.
+  event.respondWith(
+    caches.match(req).then((cached) => {
+      const network = fetch(req).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+        return res;
+      }).catch(() => cached);
       return cached || network;
     })
   );
